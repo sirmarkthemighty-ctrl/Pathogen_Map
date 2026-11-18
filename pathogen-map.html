@@ -16,6 +16,7 @@ header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:8px 1
 h1{font-size:17px;margin:0}
 .by{font-size:11px;color:var(--mut)}
 #ver{border:1px solid var(--line);background:none;color:var(--acc);border-radius:99px;padding:1px 9px;font-size:11px;cursor:pointer}
+#cnt{margin-left:auto;font-size:12px;font-weight:600;color:var(--mut);border:1px solid var(--line);border-radius:99px;padding:3px 10px;white-space:nowrap}
 #q{flex:1 1 180px;min-width:140px;max-width:360px;margin-left:auto;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--tx);font-size:14px}
 .ib{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--tx);cursor:pointer;font-size:15px;line-height:1}
 .legend{display:flex;gap:12px;font-size:12px;color:var(--mut);padding:4px 16px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:wrap}
@@ -35,7 +36,8 @@ main{position:relative;flex:1;min-height:0}
  font:18px/26px "Segoe Print","Bradley Hand","Chalkboard SE","Comic Sans MS",cursive}
 :root[data-theme=dark] #notes{--g:#22313f}
 @media(prefers-color-scheme:dark){:root:not([data-theme=light]) #notes{--g:#22313f}}
-#notes .title{font-size:24px;line-height:36px;margin-bottom:6px}
+#notes .grp{border:1.5px solid var(--g);background:color-mix(in srgb,var(--g) 9%,var(--card));border-radius:9px;padding:0 10px;line-height:24px}
+#notes .title{display:inline-block;border:2px solid var(--acc);background:color-mix(in srgb,var(--acc) 9%,var(--card));border-radius:12px;padding:0 16px;font-size:24px;line-height:36px;margin-bottom:6px}
 #notes .row{cursor:pointer;display:inline-block;padding:0 4px;border-radius:4px}
 #notes .row.sel{background:color-mix(in srgb,var(--acc) 20%,transparent)}
 #notes .row.hit{background:#ffe56b66}
@@ -73,16 +75,29 @@ details ul{margin:4px 0 6px;padding-left:18px}
  #panel.on{transform:none}
  header{padding:8px 16px}
 }
+.ib.sm{width:auto;height:28px;padding:0 10px;border-radius:8px;font-size:12px}
+.acts{display:flex;gap:8px;margin:6px 0 4px}
+.dl{list-style:none;padding-left:0}.dl li{margin:3px 0}
+.nd:focus-visible rect{stroke-width:3.5;stroke:var(--tx)}.nd:focus-visible{outline:none}
+#notes .row:focus-visible,.pl:focus-visible,.ib:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+@media(max-width:640px){header{gap:6px;padding:6px 12px}header .ib{height:26px;padding:0 9px!important;font-size:12px!important}#lgh{display:none}.by{font-size:10px}}
 </style>
 </head>
 <body>
 <header>
  <div><h1>Pathogen Map <button id="ver"></button></h1><div class="by">Interactive pathogen &amp; antimicrobial mind map · Made by Warodom Phaenthong, M.D.</div></div>
  <input id="q" type="search" placeholder="Search pathogen or drug…" aria-label="Search">
+ <button class="ib" id="tr" aria-pressed="false" style="width:auto;padding:0 12px;border-radius:99px;font-size:13px" title="Show only tropical infections">🌴 Tropical</button>
+ <button class="ib" id="mq" aria-pressed="false" style="width:auto;padding:0 12px;border-radius:99px;font-size:13px" title="Show only mosquito-borne infections">🦟 Mosquito-borne</button>
  <button class="ib" id="vw" style="width:auto;padding:0 12px;border-radius:99px;font-size:13px" title="Switch between mind map and handwritten notes view">📝 Notes</button>
+ <button class="ib" id="sv" aria-pressed="false" style="width:auto;padding:0 12px;border-radius:99px;font-size:13px">★ Saved</button>
+ <button class="ib" id="ex" style="width:auto;padding:0 12px;border-radius:99px;font-size:13px">⊞ Expand</button>
+ <button class="ib" id="co" style="width:auto;padding:0 12px;border-radius:99px;font-size:13px">⊟ Collapse</button>
+ <button class="ib" id="lg" style="width:auto;padding:0 12px;border-radius:99px;font-size:13px" aria-label="Language">ไทย</button>
  <button class="ib" id="th" aria-label="Toggle theme"></button>
+ <span id="cnt" aria-live="polite" title="Pathogens shown, out of all pathogens in the app"></span>
 </header>
-<div class="legend"><span><i style="background:var(--f)"></i>First-line</span><span><i style="background:var(--a)"></i>Alternative</span><span><i style="background:var(--x)"></i>Avoid / intrinsic resistance</span><span>Tap a node to expand · drag to pan · pinch/scroll to zoom</span></div>
+<div class="legend"><span><i style="background:var(--f)"></i><span id="lgf">First-line</span></span><span><i style="background:var(--a)"></i><span id="lga">Alternative</span></span><span><i style="background:var(--x)"></i><span id="lgx">Avoid / intrinsic resistance</span></span><span id="lgh">Tap a node to expand · drag to pan · pinch/scroll to zoom</span></div>
 <main>
  <svg id="svg"><g id="vp"><g id="eg"></g><g id="ng"></g></g></svg>
  <div id="notes"></div>
@@ -91,7 +106,7 @@ details ul{margin:4px 0 6px;padding-left:18px}
 </main>
 <div id="modal"><div id="mb"></div></div>
 <script>
-const changelogData=[{version:'1.1.0',date:'November 18, 2026',features:['Drug lists checked against the Siriraj Handbook of Infectious Disease: each checked entry shows its handbook page; unchecked entries are labelled','Added from the handbook: Shigella, EHEC, viruses (VZV, measles, dengue, chikungunya/Zika, influenza, RSV, SARS-CoV-2, hepatitis A/B/C/E, HIV), S. suis, group C/G streptococci, non-typhoidal Salmonella, rickettsiae, M. kansasii, M. abscessus, Pneumocystis, Mucorales, Histoplasma','Mind map of bacteria, fungi, protozoa and parasites (helminths, ectoparasites): 73 pathogens, each with first-line, alternative and avoid drugs','Notes view: handwritten-style outline on grid paper with bracket connectors (toggle next to the theme button)','Gram-positive cocci split by lab test: staphylococci (coagulase-positive / -negative) and streptococci & enterococci (β-, α-, γ-hemolytic)','Tap a drug to see every pathogen that lists it','Search by pathogen or drug; pan and zoom; light/dark theme'],bugs:[]}];
+const changelogData=[{version:'1.3.0',date:'November 18, 2026',features:['Bacteria are grouped as Gram-positive, Gram-negative and Others (no cell wall, obligate intracellular, spirochetes); the Gram groups follow the handbook Gram-stain diagrams (cocci and bacilli, spore-forming and non-spore-forming, MacConkey growth, lactose fermentation, oxidase)','Fungi are grouped by growth form: yeasts, moulds (septate / non-septate hyphae) and dimorphic fungi; Pneumocystis (no ergosterol) sits on its own','Protozoa are grouped as in the handbook: systemic, intestinal and genitourinary','Tropical filter: show only tropical infections (melioidosis, typhoid, cholera, scrub typhus, leptospirosis, malaria, dengue, helminths, amoebiasis and others)','Colour coding: Gram-positive violet, Gram-negative red, other bacteria teal, fungi brown, protozoa blue, parasites green, viruses orange','Opening a group no longer closes the others','Notes view draws a box around each group, including Infectious pathogens','Added Candida tropicalis, C. parapsilosis complex, C. krusei and C. auris (handbook Table 44-1)','Candida species grouped under one Candida node','Added HSV, CMV, adenovirus, parainfluenza, human metapneumovirus, norovirus/rotavirus and Japanese encephalitis virus from the handbook, with Herpesviruses and GI viruses groups','Mosquito-borne filter and more mosquito-borne infections: chikungunya and Zika as separate entries, P. ovale, P. malariae, yellow fever, West Nile virus','Pathogen count at the top right (shows how many match the filters and search)','Handbook checks: S. suis course lengths, dengue (avoid aspirin/NSAIDs) and measles vitamin A doses confirmed on the page images','Added Clostridium perfringens, HACEK group, Aeromonas/Vibrio wounds and Bordetella pertussis','New branch By infection site (empirical therapy): 15 syndromes from pneumonia to bone and joint infection','Tap a drug to see the handbook class, dose, use and adverse effects (Table 3-1, pp. 34-38)','Expand all and Collapse all buttons; Saved list (star a pathogen); link to a pathogen (Copy link); keyboard access and screen-reader labels; Thai or English interface (group names and labels)','Drug lists checked against the Siriraj Handbook of Infectious Disease: each checked entry shows its handbook page; unchecked entries are labelled','Added from the handbook: Shigella, EHEC, viruses (VZV, measles, dengue, chikungunya/Zika, influenza, RSV, SARS-CoV-2, hepatitis A/B/C/E, HIV), S. suis, group C/G streptococci, non-typhoidal Salmonella, rickettsiae, M. kansasii, M. abscessus, Pneumocystis, Mucorales, Histoplasma','Mind map of bacteria, fungi, protozoa and parasites (helminths, ectoparasites): 73 pathogens, each with first-line, alternative and avoid drugs','Notes view: handwritten-style outline on grid paper with bracket connectors (toggle next to the theme button)','Gram-positive cocci split by lab test: staphylococci (coagulase-positive / -negative) and streptococci & enterococci (β-, α-, γ-hemolytic)','Tap a drug to see every pathogen that lists it','Search by pathogen or drug; pan and zoom; light/dark theme'],bugs:[]}];
 const CATS=[
 {id:'gpc',n:'Gram-positive cocci',c:'#c0392b'},
 {id:'sta',n:'Staphylococci (catalase +)',c:'#e74c3c'},
@@ -311,6 +326,195 @@ P.push(
 {n:'Enterohemorrhagic E. coli (EHEC / STEC)',c:'ent',h:'p. 148',f:['Supportive care'],a:[],x:['All antibiotics (raise haemolytic uraemic syndrome risk)'],note:''}
 );
 
+// ---- Bacteria hierarchy follows the Siriraj Handbook's Gram-stain diagrams (Figures 1-1 to 1-5, pp. 4-8).
+// Groups with no pathogen data here (e.g. Bacillus) are left out. Nodes: [id, name, colour, parent]
+(()=>{
+const keep=['fun','pro','nem','ces','tre','ect','par','vir','vrs','vhp','vsy'];
+const old=Object.fromEntries(CATS.map(c=>[c.id,c]));
+const B=[
+['bac','Bacteria','#34495e',null],
+['gpos','Gram-positive bacteria','#922b21','bac'],
+['gpc','Gram-positive cocci','#c0392b','gpos'],
+['sta','Staphylococcus: clusters (catalase +)','#e74c3c','gpc'],
+['cps','Coagulase-positive','#a93226','sta'],
+['cns','Coagulase-negative (CoNS)','#cb4335','sta'],
+['str','Streptococcus & Enterococcus: pairs / chains (catalase −)','#af601a','gpc'],
+['bhs','β-hemolytic (complete)','#b9770e','str'],
+['ahs','α-hemolytic (partial)','#7d6608','str'],
+['ghs','γ-hemolytic (none)','#935116','str'],
+['gpb','Gram-positive bacilli','#d35400','gpos'],
+['spo','Spore-forming, large','#dc7633','gpb'],
+['ana','Anaerobic: Clostridium (catalase −)','#e59866','spo'],
+['nsp','Non-spore-forming','#ca6f1e','gpb'],
+['sml','Small rods: Listeria (catalase +)','#eb984e','nsp'],
+['bea','Beaded rods','#a04000','nsp'],
+['myc','Mycobacterium (acid-fast rod)','#7b4b2a','bea'],
+['gneg','Gram-negative bacteria','#1a5276','bac'],
+['gnc','Gram-negative cocci','#b7950b','gneg'],
+['nei','Neisseria spp. (pathogenic)','#d4ac0d','gnc'],
+['gnb','Gram-negative bacilli','#1e8449','gneg'],
+['mac','Grows on MacConkey agar','#239b56','gnb'],
+['lf','Lactose fermenters: Fam. Enterobacteriaceae','#27ae60','mac'],
+['lnf','Lactose non-fermenters','#117a8b','mac'],
+['oxp','Oxidase test (+)','#138d9d','lnf'],
+['oxn','Oxidase test (−)','#1a7f8f','lnf'],
+['ebl','Order Enterobacterales','#2c8a6e','oxn'],
+['eba','Fam. Enterobacteriaceae: Salmonella, Shigella','#3a9a7e','ebl'],
+['mor','Fam. Morganellaceae: Proteus','#4aa88c','ebl'],
+['nen','Non-Enterobacterales','#0e6f7e','oxn'],
+['nmc','Does not grow on MacConkey agar','#2471a3','gnb'],
+['hox','Oxidase test (variable): Haemophilus','#2e86c1','nmc'],
+['spm','Recovered on special media','#1f618d','nmc'],
+['anb','Anaerobic (not on MacConkey)','#154360','nmc'],
+['aty','Others (not Gram-classified in the handbook)','#6c3483','bac'],
+['ncw','No cell wall','#8e44ad','aty'],
+['oic','Obligate intracellular','#7d3c98','aty'],
+['spi','Spirochetes','#5b2c6f','aty']
+];
+const bac=B.map(([id,n,c,g])=>({id,n,c,g}));
+const fg=[{id:'yst',n:'Yeasts (budding)',c:'#7f8c8d',g:'fun'},{id:'mld',n:'Moulds (hyphae)',c:'#6c7a89',g:'fun'},{id:'hys',n:'Septate hyphae, dichotomous branching',c:'#85929e',g:'mld'},{id:'nsh',n:'Non-septate / pauciseptate broad hyphae',c:'#5d6d7e',g:'mld'},{id:'dim',n:'Dimorphic (mould, yeast at 37 °C)',c:'#4d5656',g:'fun'}];
+const pg=[{id:'psy',n:'Systemic protozoa',c:'#d81b60',g:'pro'},{id:'pin',n:'Intestinal protozoa',c:'#ad1457',g:'pro'},{id:'pgu',n:'Genitourinary protozoa',c:'#880e4f',g:'pro'}];
+const rest=['fun',...fg,'pro',...pg,'nem','ces','tre','ect','par','vir','vrs','vhp','vsy'].map(x=>typeof x==='string'?old[x]:x);
+CATS.length=0;CATS.push(...bac,...rest);
+const MAP={'Clostridioides difficile':'ana','Listeria monocytogenes':'sml','Nocardia':'bea',
+'Neisseria gonorrhoeae':'nei','Neisseria meningitidis':'nei','Moraxella catarrhalis':'gnc',
+'Escherichia coli':'lf','Klebsiella pneumoniae':'lf','ESBL-producing Enterobacterales':'lf','Carbapenem-resistant Enterobacterales (CRE)':'lf','AmpC producers (Enterobacter, Citrobacter freundii, Serratia)':'lf','Enterohemorrhagic E. coli (EHEC / STEC)':'lf',
+'Pseudomonas aeruginosa':'oxp','Burkholderia pseudomallei (melioidosis)':'oxp','Vibrio cholerae':'oxp',
+'Salmonella Typhi':'eba','Non-typhoidal Salmonella':'eba','Shigella':'eba','Proteus mirabilis':'mor',
+'Acinetobacter baumannii':'nen','Stenotrophomonas maltophilia':'nen',
+'Haemophilus influenzae':'hox','Campylobacter jejuni':'spm','Legionella pneumophila':'spm',
+'Plasmodium falciparum':'psy','Plasmodium vivax':'psy','Plasmodium knowlesi':'psy','Toxoplasma gondii':'psy','Leishmania (visceral)':'psy','Trypanosoma cruzi (Chagas)':'psy','Entamoeba histolytica':'pin','Giardia lamblia':'pin','Cryptosporidium':'pin','Trichomonas vaginalis':'pgu','Candida albicans':'yst','Candida glabrata':'yst','Cryptococcus neoformans':'yst','Aspergillus fumigatus':'hys','Mucorales (mucormycosis)':'nsh','Talaromyces marneffei':'dim','Histoplasma capsulatum':'dim','Helicobacter pylori':'spm','Bacteroides fragilis & anaerobes':'anb','Mycoplasma pneumoniae':'ncw','Chlamydia trachomatis':'oic','Rickettsia typhi & spotted fever group':'oic','Orientia tsutsugamushi (scrub typhus)':'oic','Leptospira':'spi','Treponema pallidum (syphilis)':'spi'};
+P.forEach(p=>{if(MAP[p.n])p.c=MAP[p.n]});
+// Colour code: Gram-positive = violet (crystal violet), Gram-negative = red (safranin), others teal,
+// fungi brown, protozoa blue, parasites green, viruses orange.
+const COL={gpos:'#4527a0',gpc:'#5e35b1',sta:'#6f42c1',cps:'#7b4bc4',cns:'#6a3db8',str:'#7d3c98',bhs:'#8e44ad',ahs:'#9448b5',ghs:'#7e3fa0',
+gpb:'#512da8',spo:'#6741b8',ana:'#7650c0',nsp:'#5b3aaf',sml:'#6d49bd',bea:'#4a2f9c',myc:'#583aa8',
+gneg:'#b71c1c',gnc:'#c62828',nei:'#d32f2f',gnb:'#c2185b',mac:'#d81b60',lf:'#c8344b',lnf:'#b5294a',oxp:'#c13a5c',oxn:'#a82342',ebl:'#bf3552',eba:'#c93f5f',mor:'#b83a5a',nen:'#9f2a45',nmc:'#c0392b',hox:'#cf4436',spm:'#b23c4e',anb:'#8e2433',
+aty:'#00695c',ncw:'#00796b',oic:'#0b7a6b',spi:'#00695c',
+fun:'#6d4c41',yst:'#795548',mld:'#5d4037',hys:'#6d4c41',nsh:'#4e342e',dim:'#7b5e3b',
+pro:'#1565c0',psy:'#1976d2',pin:'#0d47a1',pgu:'#1e5aa8',
+par:'#2e7d32',nem:'#2e7d32',ces:'#33691e',tre:'#1b5e20',ect:'#4a6b2a',
+vir:'#c2540a',vrs:'#b45309',vhp:'#9a3412',vsy:'#a1470d'};
+CATS.forEach(c=>{if(COL[c.id])c.c=COL[c.id]});
+})();
+
+// ---- Tropical filter: infections typical of tropical / subtropical settings, incl. those the Siriraj handbook
+// flags for Thailand. This selection is the author's, not a handbook list; edit TROP to change it.
+const TROP=new Set(['Burkholderia pseudomallei (melioidosis)','Salmonella Typhi','Vibrio cholerae','Orientia tsutsugamushi (scrub typhus)','Rickettsia typhi & spotted fever group','Leptospira','Plasmodium falciparum','Plasmodium vivax','Plasmodium knowlesi','Dengue virus','Chikungunya & Zika virus','Talaromyces marneffei','Histoplasma capsulatum','Strongyloides stercoralis','Ascaris lumbricoides','Hookworm (Ancylostoma, Necator)','Trichuris trichiura','Lymphatic filariae (Wuchereria, Brugia)','Gnathostoma spinigerum','Angiostrongylus cantonensis','Taenia solium (neurocysticercosis)','Opisthorchis viverrini','Fasciola hepatica','Paragonimus species','Schistosoma species','Entamoeba histolytica','Leishmania (visceral)','Trypanosoma cruzi (Chagas)','Sarcoptes scabiei (scabies)']);
+let tropOnly=false;
+let mosqOnly=false;
+let savedOnly=false;const saved=new Set((()=>{try{return JSON.parse(localStorage.getItem('pmap-saved')||'[]')}catch(e){return[]}})());
+const okP=p=>(!tropOnly||TROP.has(p.n))&&(!mosqOnly||MOSQ.has(p.n))&&(!savedOnly||saved.has(p.n));
+const hasTrop=id=>P.some(p=>p.c===id&&okP(p))||CATS.some(c=>c.g===id&&hasTrop(c.id));
+// ---- More Candida species (handbook Table 44-1, p. 338, and treatment pp. 339-341)
+P.push(
+{n:'Candida tropicalis',c:'yst',h:'pp. 338–341',f:['Echinocandin (micafungin, caspofungin, anidulafungin)'],a:['Liposomal amphotericin B 3–5 mg/kg/day','Fluconazole (step-down when stable and susceptible)'],x:[],note:'Reduced azole susceptibility, but still susceptible to the other antifungal classes.'},
+{n:'Candida parapsilosis complex',c:'yst',h:'pp. 338–341',f:['Echinocandin (initial therapy)','Fluconazole (reliably susceptible)'],a:['Liposomal amphotericin B 3–5 mg/kg/day'],x:[],note:'Always susceptible to fluconazole, but echinocandin susceptibility may be reduced. Common on catheters and biofilm.'},
+{n:'Candida krusei',c:'yst',h:'pp. 338–341',f:['Echinocandin'],a:['Voriconazole (usually susceptible)','Liposomal amphotericin B 3–5 mg/kg/day'],x:['Fluconazole (natural resistance)'],note:'Intrinsically fluconazole-resistant.'},
+{n:'Candida auris',c:'yst',h:'pp. 338–341',f:['Echinocandin'],a:[],x:[],note:'Multidrug-resistant. Echinocandin is the susceptible class, but echinocandin resistance is rising; test susceptibility.'}
+);
+P.push(P.splice(P.findIndex(p=>p.n==='Cryptococcus neoformans'),1)[0]); // keep Candida species together
+// ---- Candida species grouped under one node
+CATS.splice(CATS.findIndex(c=>c.id==='yst')+1,0,{id:'cnd',n:'Candida spp.',c:'#8b5e3c',g:'yst'});
+P.forEach(p=>{if(p.n.startsWith('Candida '))p.c='cnd'});
+// ---- More viruses from the handbook (antiviral agents pp. 40-47; GI p. 148; CNS pp. 212-214)
+CATS.splice(CATS.findIndex(c=>c.id==='vsy')+1,0,{id:'vhv',n:'Herpesviruses',c:'#b9500a',g:'vir'},{id:'vgi',n:'Gastrointestinal viruses',c:'#a3480a',g:'vir'});
+P.find(p=>p.n==='Varicella-zoster virus').c='vhv';
+P.push(
+{n:'Herpes simplex virus (HSV-1, HSV-2)',c:'vhv',h:'pp. 40–42',f:['Genital herpes, first episode: acyclovir 400 mg PO tid × 7–10 d, valacyclovir 1,000 mg bid, or famciclovir 250 mg tid','HSV encephalitis: acyclovir 10 mg/kg IV q8h × 14–21 d'],a:['Recurrent episodes: shorter courses of the same drugs','Suppressive: acyclovir 400 mg bid or valacyclovir 500 mg daily','Disseminated or immunocompromised: IV acyclovir'],x:[],note:'Monitor CBC and creatinine on IV acyclovir. Empirical acyclovir covers HSV and VZV in acute encephalitis.'},
+{n:'Cytomegalovirus (CMV)',c:'vhv',h:'pp. 43–44',f:['Ganciclovir 5 mg/kg IV q12h','Valganciclovir 900 mg PO bid (induction 14–21 d)'],a:['Foscarnet 90 mg/kg IV q12h','Cidofovir 5 mg/kg IV (with probenecid)','Retinitis: intravitreal ganciclovir or foscarnet plus systemic therapy','Maintenance: valganciclovir 900 mg daily'],x:[],note:'Transplant: prophylaxis with valganciclovir 900 mg daily × 6 months (donor+/recipient−), or pre-emptive therapy when viral load rises. Monitor CBC (ganciclovir), creatinine and electrolytes (foscarnet, cidofovir).'},
+{n:'Adenovirus',c:'vrs',h:'p. 47',f:['Cidofovir 5 mg/kg IV weekly with probenecid (pneumonia)'],a:[],x:[],note:'For severe adenovirus pneumonia.'},
+{n:'Parainfluenza virus',c:'vrs',h:'p. 46',f:['Supportive care'],a:['Ribavirin (severe pneumonia)'],x:[],note:''},
+{n:'Human metapneumovirus',c:'vrs',h:'p. 47',f:['Supportive care'],a:['Ribavirin (pneumonia; as for RSV)'],x:[],note:''},
+{n:'Norovirus & rotavirus',c:'vgi',h:'p. 148',f:['Supportive: oral rehydration'],a:[],x:[],note:'No antiviral. Ringer lactate IV in severe dehydration (p. 150).'},
+{n:'Japanese encephalitis virus',c:'vsy',h:'pp. 212–214',f:['Supportive care'],a:[],x:[],note:'No specific antiviral; prevent with JE vaccine. Empirical acyclovir covers HSV/VZV until excluded.'}
+);
+TROP.add('Japanese encephalitis virus');
+// ---- More mosquito-borne infections. Chikungunya and Zika split (handbook pp. 309-312); other Plasmodium species
+// (handbook p. 377: chloroquine for non-falciparum malaria; primaquine for hypnozoites, p. 378).
+P.splice(P.findIndex(p=>p.n==='Chikungunya & Zika virus'),1);
+TROP.delete('Chikungunya & Zika virus');
+['Chikungunya virus','Zika virus','Plasmodium ovale','Plasmodium malariae'].forEach(n=>TROP.add(n));
+const pk=P.find(p=>p.n==='Plasmodium knowlesi');
+Object.assign(pk,{h:'pp. 375–378',f:['Chloroquine 25 mg/kg over 3 days (non-falciparum malaria)','Artesunate IV 2.4 mg/kg (severe malaria)'],a:[],x:[],note:'The handbook treats non-falciparum species with chloroquine; every severe malaria starts with IV artesunate.'});delete pk.nh;
+P.push(
+{n:'Plasmodium ovale',c:'psy',h:'pp. 377–378',f:['Chloroquine 25 mg/kg over 3 days + primaquine 0.5 mg/kg (15–30 mg) × 14 d (hypnozoites)'],a:['Artesunate IV (severe)'],x:['Primaquine in G6PD deficiency (test first)'],note:'Hypnozoites cause relapse.'},
+{n:'Plasmodium malariae',c:'psy',h:'pp. 377–378',f:['Chloroquine 25 mg/kg over 3 days'],a:['Artesunate IV (severe)'],x:[],note:'Non-falciparum malaria.'},
+{n:'Chikungunya virus',c:'vsy',h:'pp. 310–312',f:['Supportive: paracetamol'],a:['NSAIDs (once dengue excluded)','Hydroxychloroquine / methotrexate (chronic arthritis)'],x:[],note:'Alphavirus (Aedes). Symmetric polyarthralgia, lymphopenia; RT-PCR in the first days, IgM later.'},
+{n:'Zika virus',c:'vsy',h:'pp. 309–312',f:['Supportive: paracetamol'],a:[],x:[],note:'Flavivirus (Aedes). Congenital Zika syndrome and Guillain-Barré syndrome; serial fetal ultrasound in pregnancy.'},
+{n:'Yellow fever virus',c:'vsy',nh:1,f:['Supportive care (no specific antiviral)'],a:[],x:[],note:'Aedes and Haemagogus mosquitoes; Africa and South America. Prevented by the live 17D vaccine.'},
+{n:'West Nile virus',c:'vsy',nh:1,f:['Supportive care (no specific antiviral)'],a:[],x:[],note:'Culex mosquitoes. Most infections are mild; a minority develop meningitis, encephalitis or acute flaccid paralysis.'}
+);
+const MOSQ=new Set(['Dengue virus','Chikungunya virus','Zika virus','Japanese encephalitis virus','Plasmodium falciparum','Plasmodium vivax','Plasmodium ovale','Plasmodium malariae','Plasmodium knowlesi','Lymphatic filariae (Wuchereria, Brugia)','Yellow fever virus','West Nile virus']);
+// ---- Pass 3: OCR checks against page images, gap organisms, syndromes, drug dose table (all Siriraj handbook)
+Object.assign(P.find(p=>p.n==='Streptococcus suis'),{h:'p. 234',f:['Penicillin G 24 MU/day IV (high dose if severe)','Ampicillin 12 g/day IV'],a:['Cephalosporins','Vancomycin','Co-trimoxazole'],note:'Zoonosis from pigs and raw pork: meningitis with hearing loss, bacteraemia, toxic-shock-like illness, endocarditis. Courses are longer than for other streptococci: bacteraemia or toxic shock at least 2 weeks, meningitis at least 3 weeks, endocarditis at least 4–6 weeks. Protective gear for exposed workers; avoid raw pork.'});
+Object.assign(P.find(p=>p.n==='Dengue virus'),{h:'pp. 306–312',f:['Supportive: oral fluids and rest','Paracetamol only as needed (regular dosing does not bring the fever down faster and raises liver inflammation)'],x:['Aspirin and NSAIDs'],note:'No antiviral. Give IV fluid only in the amount needed and for a short time; excess may cause plasma leakage in DHF. NS1 antigen days 1–5; RT-PCR; IgM after day 5. Watch warning signs, haematocrit and platelets.'});
+Object.assign(P.find(p=>p.n==='Measles virus'),{h:'pp. 299–303',f:['Supportive care (fluids, nutrition, antibiotics for bacterial complications)','Vitamin A once daily × 2 consecutive days within 5 days of the rash: 50,000 U (<6 months), 100,000 U (6 months–1 year), 200,000 U (>1 year)'],a:['Ribavirin IV / aerosol (severe or immunocompromised; not approved)']});
+CATS.splice(CATS.findIndex(c=>c.id==='hox')+1,0,{id:'oxa',n:'Oxidase test (+): ACEK (HACEK group)',c:'#d3544a',g:'nmc'});
+CATS.push({id:'syn',n:'By infection site (empirical therapy)',c:'#455a64',g:null});
+P.push(
+{n:'Clostridium perfringens (gas gangrene)',c:'ana',h:'pp. 174, 176',f:['Penicillin G 4 MU IV q4h + clindamycin 900 mg IV q8h'],a:['Surgical debridement','Hyperbaric oxygen (adjunct)'],x:[],note:'Clostridial myonecrosis: 80% C. perfringens; others C. novyi, C. septicum (bowel infarction, neutropenia). Crepitus, intravascular haemolysis.'},
+{n:'HACEK group (endocarditis)',c:'oxa',h:'p. 134',f:['Ceftriaxone 2 g IV daily × 4 weeks (native valve) to 6 weeks (prosthetic valve)'],a:[],x:[],note:'Haemophilus, Aggregatibacter, Cardiobacterium, Eikenella, Kingella: a major criterion organism group for infective endocarditis.'},
+{n:'Aeromonas & Vibrio (water-exposure wounds)',c:'oxp',h:'p. 176',f:['Ceftazidime','Ciprofloxacin'],a:[],x:[],note:'Wounds exposed to fresh or salt water; V. vulnificus causes haemorrhagic blebs in cirrhosis.'},
+{n:'Bordetella pertussis',c:'spm',h:'p. 122',f:['Macrolide (azithromycin, clarithromycin)'],a:[],x:[],note:'Handbook lists macrolides (10–14 days) for the pertussis, Mycoplasma and Chlamydophila cough illnesses.'},
+// ---- By infection site (empirical therapy)
+{n:'Community-acquired pneumonia (CAP)',c:'syn',syn:1,h:'pp. 126–127',f:['β-lactam + macrolide (oral or IV), or a respiratory fluoroquinolone alone','Oseltamivir when influenza is suspected'],a:['P. aeruginosa risk: antipseudomonal β-lactam + respiratory fluoroquinolone','Melioidosis-endemic area, severe: ceftazidime or meropenem'],x:[],note:'S. pneumoniae, H. influenzae, Mycoplasma, Chlamydophila, Legionella; P. aeruginosa and B. pseudomallei in risk groups. CURB-65 guides the site of care.'},
+{n:'Hospital / ventilator-associated pneumonia',c:'syn',syn:1,h:'p. 128',f:['Early onset: IV β-lactam/β-lactamase inhibitor or IV respiratory fluoroquinolone','Late onset: IV antipseudomonal β-lactam/β-lactamase inhibitor'],a:['IV carbapenem','MDR Gram-negative bacilli: IV colistin'],x:[],note:'Early: K. pneumoniae, Enterobacter, E. coli, MSSA. Late: A. baumannii, K. pneumoniae, P. aeruginosa, S. maltophilia, MRSA. Treat 7–14 days.'},
+{n:'Upper respiratory infections (sinusitis, pharyngitis, otitis)',c:'syn',syn:1,h:'pp. 120–123',f:['Sinusitis: amoxicillin-clavulanate 875/125 mg bid × 10 d','Group A streptococcal pharyngitis: penicillin V 250 mg qid × 10 d, benzathine penicillin 1.2 MU IM once, or amoxicillin','Otitis media: amoxicillin 80–90 mg/kg/day'],a:['Sinusitis: levofloxacin 500 mg daily, doxycycline','Pharyngitis, β-lactam allergy: cephalexin, clindamycin, clarithromycin, azithromycin'],x:[],note:'Most common colds are viral. Sinusitis: H. influenzae 30–40%, S. pneumoniae 30%, M. catarrhalis 15%.'},
+{n:'Acute bacterial meningitis',c:'syn',syn:1,h:'pp. 209–211',f:['Age 16–50: 3rd-generation cephalosporin (ceftriaxone) ± vancomycin','Age >50 or immunocompromised: ampicillin + ceftriaxone ± vancomycin','Dexamethasone 0.15 mg/kg IV q6h × 2–4 d for pneumococcal meningitis'],a:['Neurosurgery / CSF drain: cefepime, ceftazidime or meropenem + vancomycin','S. suis: penicillin G + 3rd-generation cephalosporin','Rickettsial infection: doxycycline or azithromycin'],x:[],note:'Add vancomycin where penicillin-resistant pneumococcus is possible. CT before lumbar puncture only if signs of raised pressure or papilloedema.'},
+{n:'Acute encephalitis',c:'syn',syn:1,h:'pp. 42, 212–214',f:['Acyclovir 10 mg/kg IV q8h × 14–21 d (HSV, VZV) until excluded'],a:[],x:[],note:'Viral causes: HSV, VZV, enterovirus, Japanese encephalitis; also bacteria and TB. Meningitis/encephalitis PCR panel; MRI. Monitor CBC and creatinine on IV acyclovir.'},
+{n:'Infective endocarditis',c:'syn',syn:1,h:'pp. 133–137',f:['Empirical (AHA): ampicillin-sulbactam 3 g IV q6h + gentamicin 1 mg/kg q8h','Oral streptococci / S. bovis: penicillin G 12–18 MU/day, ceftriaxone 2 g/day or amoxicillin 100–200 mg/kg/day × 4 weeks','MSSA: cloxacillin 12 g/day × 4–6 weeks','Enterococcus: ampicillin 12 g/day + gentamicin 3 mg/kg/day','HACEK: ceftriaxone 2 g/day × 4 weeks (native) / 6 weeks (prosthetic)'],a:['MRSA or β-lactam allergy: vancomycin 30 mg/kg/day','Prosthetic valve staphylococci: add rifampicin 900–1,200 mg/day + gentamicin','Enterococcus: ampicillin + ceftriaxone 4 g/day'],x:[],note:'Modified Duke criteria; TTE then TEE. Early surgery for heart failure, abscess, large vegetations or embolic events.'},
+{n:'Catheter-related bloodstream infection',c:'syn',syn:1,h:'pp. 140–145',f:['Gram-positive: vancomycin (methicillin-resistant) or cloxacillin / cefazolin (methicillin-susceptible)','Gram-negative, non-MDR: 3rd/4th-generation cephalosporin, β-lactam/β-lactamase inhibitor or fluoroquinolone','P. aeruginosa / MDR Gram-negative: antipseudomonal β-lactam or carbapenem; colistin for XDR','Candida: echinocandin'],a:['Daptomycin or linezolid (Gram-positive)','S. maltophilia: co-trimoxazole or levofloxacin','Fluconazole or amphotericin B (Candida)'],x:[],note:'Remove short-term catheters; antibiotic lock therapy for long-term catheters. S. aureus: echocardiography.'},
+{n:'Acute gastroenteritis',c:'syn',syn:1,h:'p. 148',f:['Oral rehydration (most cases settle within 24 h)','Bloody stool or severe watery diarrhoea: ciprofloxacin 500 mg bid, levofloxacin 500 mg daily or azithromycin 500 mg daily × 3 d'],a:['Mild watery diarrhoea: loperamide or bismuth subsalicylate (not when inflammatory gastroenteritis is suspected)','By organism: cholera and Campylobacter azithromycin; Shigella ceftriaxone or ciprofloxacin; EHEC no antibiotics'],x:[],note:'Send stool for C. difficile toxin if suspected. Blood cultures if severe, immunocompromised or enteric fever suspected.'},
+{n:'Biliary tract infection (cholecystitis, cholangitis)',c:'syn',syn:1,h:'pp. 153–154',f:['3rd-generation cephalosporin (ceftriaxone) or cefuroxime','Add metronidazole with a biliary-enteric anastomosis'],a:['Carbapenem or piperacillin-tazobactam (severe)'],x:[],note:'Enteric Gram-negative rods (E. coli, Klebsiella, Enterobacter), anaerobes, enterococci. Treat 4–7 days; drain the biliary tree when obstructed.'},
+{n:'Intra-abdominal infection (peritonitis, abscess)',c:'syn',syn:1,h:'pp. 155–161',f:['Community secondary peritonitis: ceftriaxone / cefotaxime + metronidazole, or cefoxitin alone','Hospital-acquired: meropenem, imipenem or piperacillin-tazobactam','Spontaneous bacterial peritonitis: cefotaxime / ceftriaxone × 5–7 d','Pyogenic liver abscess: ceftriaxone / cefotaxime + metronidazole'],a:['B. pseudomallei liver or splenic abscess: ceftazidime or meropenem','Amoebic liver abscess: metronidazole 750 mg tid × 7–10 d, then a luminal agent'],x:[],note:'Peritonitis courses 4–7 days.'},
+{n:'Urinary tract infection',c:'syn',syn:1,h:'pp. 163–166',f:['Cystitis: nitrofurantoin 100 mg tid–qid × 5 d, fosfomycin 3 g once, cefixime 200 mg bid, or ciprofloxacin 500 mg bid × 3 d','Pyelonephritis: gentamicin 240 mg IV daily × 7–10 d, ceftriaxone 2 g IV daily × 10–14 d, or ciprofloxacin 400 mg IV q12h × 7 d','Prostatitis: ceftriaxone 250 mg IM + doxycycline × 10 d (STI risk), or ciprofloxacin / co-trimoxazole × 10–14 d'],a:['Nosocomial ESBL: ertapenem 1 g daily','Nosocomial P. aeruginosa: piperacillin-tazobactam 4.5 g q6h','CRE: amikacin 750 mg IV daily × 10–14 d'],x:[],note:'Choose by antibiogram. Bacteraemic UTI: IV-to-PO step-down.'},
+{n:'Skin and soft tissue infection',c:'syn',syn:1,h:'pp. 168–176',f:['Impetigo: mupirocin 2% ointment','Mild cellulitis / abscess: dicloxacillin 500 mg qid, cephalexin 500 mg qid, or clindamycin 300 mg tid (penicillin allergy)','Severe cellulitis: cloxacillin 1–2 g IV q4h or cefazolin 1–2 g IV q8h; clindamycin 600–900 mg IV q8h (allergy)','Necrotising fasciitis / myonecrosis: penicillin G 4 MU IV q4h + clindamycin 900 mg IV q8h + surgery'],a:['MRSA: vancomycin 1 g IV q12h','Water-exposure wounds (Vibrio, Aeromonas): ceftazidime, ciprofloxacin'],x:[],note:'Necrotising fasciitis: LRINEC score; surgical exploration.'},
+{n:'Bone and joint infection',c:'syn',syn:1,h:'pp. 196–207',f:['Septic arthritis, empirical: ceftriaxone or cefotaxime; add cloxacillin if Gram-positive cocci','MSSA: cloxacillin or cefazolin; streptococci: penicillin G; enteric Gram-negatives: 3rd-generation cephalosporin or fluoroquinolone; P. aeruginosa: ceftazidime or fluoroquinolone','Gonococcal arthritis: ceftriaxone 1 g/day × 7 d','Osteomyelitis: 4–6 weeks after adequate debridement'],a:['MRSA: vancomycin, linezolid, levofloxacin, rifampicin','Mixed organisms: ampicillin-sulbactam, amoxicillin-clavulanate, piperacillin-tazobactam, carbapenem'],x:[],note:'Drain septic joints; treat 3–4 weeks for non-gonococcal septic arthritis (check handbook p. 201).'},
+{n:'Sexually transmitted infection syndromes',c:'syn',syn:1,h:'pp. 181–195',f:['Gonococcal urethritis / cervicitis: ceftriaxone 250–500 mg IM + azithromycin 1 g','Non-gonococcal urethritis: azithromycin 1 g once or doxycycline 100 mg bid × 7 d','Vaginal discharge: fluconazole 150 mg or clotrimazole (candidiasis); metronidazole 500 mg bid × 7 d (bacterial vaginosis); metronidazole or tinidazole 2 g (trichomoniasis)','Genital ulcer: benzathine penicillin G (syphilis); azithromycin 1 g or ceftriaxone 250 mg (chancroid); doxycycline × 21 d (LGV); acyclovir (HSV)'],a:[],x:[],note:'Test for syphilis, HBV, HCV and HIV.'},
+{n:'Acute undifferentiated fever',c:'syn',syn:1,h:'pp. 101–105',f:['Suspected rickettsiosis or leptospirosis: doxycycline 200 mg/day × 7 d, or azithromycin 500 mg/day × 3 d','First: CBC, malaria and dengue tests'],a:['Septic: ceftriaxone or ceftazidime + azithromycin IV'],x:[],note:'Think of dengue, malaria, scrub and murine typhus, leptospirosis and melioidosis.'}
+);
+TROP.add('Aeromonas & Vibrio (water-exposure wounds)');
+// ---- Drug dose table: handbook Table 3-1 (pp. 34-38). [aliases, class, use, dose, adverse effects]
+const DOSE=[
+[['benzathine penicillin','penicillin g','penicillin v','penicillin'],'Penicillins','Streptococci, Gram-positive anaerobes, spirochetes (syphilis, leptospirosis)','IM 1.2 MU weekly (benzathine); IV 0.5–4 MU q4h; PO 0.25–0.5 g qid before meals','Allergic rash; serious allergy (serum sickness, interstitial nephritis)'],
+[['cloxacillin','dicloxacillin'],'Penicillins','MSSA, some CoNS','IV 1–2 g q6h; PO 0.25–0.5 g qid before meals','Serious allergy; IV thrombophlebitis; PO nausea, vomiting'],
+[['ampicillin-sulbactam'],'β-lactam / β-lactamase inhibitor','Streptococci, MSSA, enterococci, Enterobacteriaceae, A. baumannii, anaerobes','2/1 g q6h','As ampicillin / amoxicillin'],
+[['amoxicillin-clavulanate','co-amoxiclav'],'β-lactam / β-lactamase inhibitor','Streptococci, MSSA, enterococci, Enterobacteriaceae, anaerobes','IV 1000/200 mg q8h; PO 500/125 mg tid or 875/125 mg bid','As ampicillin / amoxicillin; hepatotoxicity'],
+[['piperacillin-tazobactam','pip-tazo','piperacillin/tazobactam'],'β-lactam / β-lactamase inhibitor','Streptococci, MSSA, enterococci, Enterobacteriaceae, P. aeruginosa, A. baumannii, anaerobes','4.5 g q6–8h (q6h if P. aeruginosa is suspected)','Thrombocytopenia'],
+[['ampicillin','amoxicillin'],'Penicillins','S. pneumoniae, H. influenzae, community Enterobacteriaceae, enterococci','IV 1–2 g q6h; PO 250–1000 mg tid','EBV-associated rash'],
+[['cefazolin','cephalexin'],'1st-generation cephalosporins','Streptococci, MSSA','IV 1–2 g q8h; PO 0.25–1 g tid–qid',''],
+[['cefuroxime'],'2nd-generation cephalosporins','Streptococci, MSSA, H. influenzae, community Enterobacteriaceae','IV 0.75–1.5 g q8h; PO 0.25–0.5 g q12h',''],
+[['ceftriaxone'],'3rd-generation cephalosporins','Streptococci, MSSA, penicillin-resistant pneumococcus, community Enterobacteriaceae','2 g q24h (CNS infection 2 g q12h)','Pseudocholelithiasis; kernicterus in newborn'],
+[['cefotaxime'],'3rd-generation cephalosporins','As ceftriaxone','1–2 g q8h',''],
+[['cefixime','cefdinir','cefditoren'],'3rd-generation oral cephalosporins','Community Enterobacteriaceae','Cefixime 0.2–0.4 g q12h; cefdinir 0.3 g q12h; cefditoren 0.2–0.4 g q12h',''],
+[['ceftazidime-avibactam'],'New cephalosporin / β-lactamase inhibitor','Enterobacteriaceae including some ESBL and some CRE; P. aeruginosa, A. baumannii including some MDR strains','2.5 g q8h','Seizure (ceftazidime); hypersensitivity'],
+[['ceftazidime'],'3rd-generation anti-pseudomonal cephalosporin','Community Enterobacteriaceae, P. aeruginosa, B. pseudomallei; poor Gram-positive activity','1–2 g q8h','Seizure'],
+[['cefoperazone-sulbactam'],'Cephalosporin / β-lactamase inhibitor','Enterobacteriaceae, P. aeruginosa, A. baumannii','1 g cefoperazone / 0.5–1 g sulbactam q8–12h','Coagulopathy'],
+[['ceftaroline'],'New cephalosporin','Gram-positive cocci including MRSA; community Enterobacteriaceae; no enterococcal activity','600 mg q8–12h','Positive Coombs test; eosinophilic pneumonia'],
+[['ceftolozane-tazobactam'],'New cephalosporin / β-lactamase inhibitor','Enterobacteriaceae including some ESBL; P. aeruginosa, A. baumannii including some MDR strains','1.5 g q8h (HAP/VAP 3 g q8h)','Renal impairment'],
+[['ertapenem'],'Carbapenems','Enterobacteriaceae including most ESBL','1 g q24h','Dizziness, confusion, seizure; interaction with valproic acid'],
+[['imipenem'],'Carbapenems','Enterobacteriaceae including most ESBL; P. aeruginosa, A. baumannii including some MDR strains; enterococci (imipenem only)','500 mg q6h','Seizure'],
+[['meropenem'],'Carbapenems','Enterobacteriaceae including most ESBL; P. aeruginosa, A. baumannii including some MDR strains','1 g q8h (CNS infection 2 g q8h)','Interaction with valproic acid'],
+[['gentamicin','amikacin'],'Aminoglycosides','Enterobacteriaceae, P. aeruginosa, A. baumannii; enterococci (synergy); mycobacteria','Gentamicin 4–5 mg/kg/day q24h; amikacin 15 mg/kg/day q24h','Nephrotoxicity; oto- and neurotoxicity'],
+[['vancomycin'],'Glycopeptide','MSSA, MRSA; enterococci (except VRE); L. monocytogenes; anaerobic cocci','25–30 mg/kg loading, then 15–20 mg/kg q12h; monitor levels (trough) in severe infection, endocarditis, osteomyelitis, CNS infection or courses over 4 days','Red man syndrome; nephrotoxicity'],
+[['ciprofloxacin'],'Quinolones','Community Enterobacteriaceae; P. aeruginosa, A. baumannii; mycobacteria','IV 400 mg q8–12h; PO 500–750 mg q12h','Dysglycaemia; aortic aneurysm; tendinopathy; pseudotumour cerebri; QT prolongation; drug interactions; aggravates myasthenia gravis'],
+[['levofloxacin'],'Quinolones','Community Enterobacteriaceae; atypical pathogens of CAP','IV/PO 500–750 mg once daily','As ciprofloxacin'],
+[['moxifloxacin'],'Quinolones','Atypical pathogens of CAP; anaerobes','IV/PO 400 mg once daily','As ciprofloxacin'],
+[['sitafloxacin'],'Quinolones','Some ESBL and CRE strains','50 mg q12h (100 mg q12h for MDR Gram-negative bacilli)','As ciprofloxacin'],
+[['norfloxacin','ofloxacin'],'Quinolones','Community Enterobacteriaceae','Norfloxacin 400 mg q12h; ofloxacin 200 mg q12h','As ciprofloxacin'],
+[['doxycycline'],'Tetracyclines','Atypical pathogens of CAP; Rickettsia, Brucella; Vibrio','100 mg q12h','Heartburn; photosensitivity'],
+[['tigecycline'],'Glycylcycline','MSSA, MRSA, enterococci; MDR Gram-negative bacilli including some ESBL and CRE (no P. aeruginosa or A. baumannii activity); anaerobes','100 mg load, then 50 mg q12h (100 mg q12h for MDR organisms)','Nausea, vomiting; hepatotoxicity'],
+[['azithromycin'],'Macrolides','S. pneumoniae, H. influenzae, M. catarrhalis; atypical pathogens of CAP','IV/PO 500 mg q24h (no renal adjustment)','Metallic taste; QT prolongation; hepatitis'],
+[['clarithromycin'],'Macrolides','As azithromycin','500 mg q12h','Metallic taste; QT prolongation; hepatitis'],
+[['roxithromycin'],'Macrolides','As azithromycin','150 mg q12h (no renal adjustment)','Metallic taste; QT prolongation; hepatitis'],
+[['linezolid'],'Oxazolidinone','MSSA, MRSA, enterococci including VRE; anaerobic cocci; mycobacteria','IV/PO 600 mg q12h (no renal adjustment)','Thrombocytopenia; neuropathy; lactic acidosis'],
+[['colistin'],'Polymyxin','Aerobic Gram-negative bacilli including CRE, MDR P. aeruginosa and MDR A. baumannii','300 mg loading dose, then 150 mg q8–12h','Nephrotoxicity; neurotoxicity'],
+[['co-trimoxazole','tmp-smx','trimethoprim-sulfamethoxazole'],'Folate antagonist','Community Enterobacteriaceae; L. monocytogenes; B. pseudomallei, S. maltophilia; P. jirovecii, Nocardia','5–20 mg/kg/day of TMP, q6–8h','Bone marrow suppression; acute kidney injury; hyperkalaemia'],
+[['clindamycin'],'Lincosamide','Streptococci, MSSA; anaerobes; P. falciparum, P. jirovecii','IV 600–900 mg q8h; PO 150–450 mg q8h','Nausea, vomiting; C. difficile-associated diarrhoea'],
+[['fosfomycin'],'Phosphonic acid','Gram-positive cocci including MRSA; Gram-negative bacilli including some ESBL and CRE; MDR A. baumannii and P. aeruginosa','IV 1–2 g q12h (Gram-positive); IV 2–4 g q4–6h (MDR Gram-negative bacilli); PO 3 g once for uncomplicated cystitis','Hypernatraemia (IV); diarrhoea (PO)'],
+[['metronidazole'],'Nitroimidazole','Anaerobic bacteria, C. difficile; protozoa','7.5 mg/kg q6h','Nausea, vomiting; metallic taste']
+];
 const $=s=>document.querySelector(s),CAT=Object.fromEntries(CATS.map(c=>[c.id,c]));
 const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const ROLE={f:['var(--f)','1st'],a:['var(--a)','alt'],x:['var(--x)','avoid']};
@@ -321,8 +525,8 @@ const W=t=>ctx.measureText(t).width;
 function kids(n){
  if(n.t==='root'||n.t==='cat'){
   const g=n.t==='root'?null:n.key;
-  return[...CATS.filter(c=>c.g===g).map(c=>({key:c.id,t:'cat',label:c.n,color:c.c,data:c})),
-   ...P.filter(p=>p.c===g).map(p=>({key:'p:'+p.n,t:'pat',label:p.n,color:CAT[p.c].c,data:p}))];}
+  return[...CATS.filter(c=>c.g===g&&(!(tropOnly||mosqOnly||savedOnly)||hasTrop(c.id))).map(c=>({key:c.id,t:'cat',label:gl(c),color:c.c,data:c})),
+   ...P.filter(p=>p.c===g&&okP(p)).map(p=>({key:'p:'+p.n,t:'pat',label:p.n,color:CAT[p.c].c,data:p}))];}
  if(n.t==='pat')return['f','a','x'].flatMap(r=>n.data[r].map(d=>({key:n.key+r+d,t:'drug',role:r,label:d,color:ROLE[r][0],data:n.data})));
  return[];}
 function hits(n){ // does node or descendant match query
@@ -333,7 +537,7 @@ function hits(n){ // does node or descendant match query
 function isOpen(n){ if(n.t==='drug')return false; if(q)return n.t==='root'||(n.t==='cat')||kids(n).some(k=>k.t==='drug'&&hits(k)); return n.t==='root'||open.has(n.key);}
 function layout(){
  nodes=[];const edges=[];let y=0;const ROW=34;
- const root={key:'root',t:'root',label:'Infectious pathogens',color:'#0f6cbd'};
+ const root={key:'root',t:'root',label:rootLabel(),color:'#0f6cbd'};
  (function walk(n,d,parent){
   n.d=d;n.p=parent;let ks=isOpen(n)?kids(n):[];
   if(q)ks=ks.filter(hits);
@@ -354,8 +558,8 @@ function draw(anchor){
   const tg=n.t==='drug'?`<text class="tg" x="9" y="0">${ROLE[n.role][1]}</text>`:'';
   const tx=n.t==='drug'?40:12;
   const mark=n.more?`<text x="${n.w-14}" y="0" style="font-size:11px">▸</text>`:'';
-  return`<g class="${cls}" data-k="${esc(n.key)}" style="--c:${n.color}" transform="translate(${n.x} ${n.y})"><rect y="${-h/2}" width="${n.w}" height="${h}" rx="${n.t==='root'?13:7}"/>${tg}<text x="${tx}" y="0">${esc(n.label)}</text>${mark}</g>`}).join('');
- $('#vp').setAttribute('transform',`translate(${view.x} ${view.y}) scale(${view.k})`);}
+  return`<g class="${cls}" tabindex="0" role="button" aria-label="${esc(n.label)}"${n.t==='cat'||n.t==='pat'?` aria-expanded="${open.has(n.key)}"`:''} data-k="${esc(n.key)}" style="--c:${n.color}" transform="translate(${n.x} ${n.y})"><rect y="${-h/2}" width="${n.w}" height="${h}" rx="${n.t==='root'?13:7}"/>${tg}<text x="${tx}" y="0">${esc(n.label)}</text>${mark}</g>`}).join('');
+ $('#vp').setAttribute('transform',`translate(${view.x} ${view.y}) scale(${view.k})`);updateCount();}
 function fit(){
  draw();const b=$('#svg').getBoundingClientRect();
  const w=Math.max(...nodes.map(n=>n.x+n.w)),h=Math.max(...nodes.map(n=>n.y))+30;
@@ -368,11 +572,9 @@ function refresh(key){mode==='notes'?renderNotes():draw(key)}
 function click(key){
  const n=find(key);if(!n)return;
  if(n.t==='cat'||n.t==='pat'){
-  // accordion: keep only the ancestors of this node, plus the node itself when opening
-  const was=open.has(key);open=new Set();
-  for(let a=n.p;a&&a.t!=='root';a=a.p)open.add(a.key);
-  if(!was)open.add(key);
-  if(n.t==='pat'){sel=key;showPat(n.data)}
+  // toggle only this node; other open groups stay open
+  if(open.has(key))open.delete(key);else open.add(key);
+  if(n.t==='pat'){sel=key;showPat(n.data);setHash(n.data)}
  }else if(n.t==='drug'){sel=key;showDrug(drugBase(n.label))}
  if(mode==='notes'){renderNotes();return}
  draw(key);
@@ -381,21 +583,7 @@ function click(key){
   const kidsW=n.t==='pat'?Math.max(...nodes.filter(z=>z.p&&z.p.key===key).map(z=>z.w),0)+60:0;
   const right=(nn.x+nn.w+kidsW)*view.k+view.x,lim=b.width-pw-12;
   if(right>lim){view.x-=Math.min(right-lim,nn.x*view.k+view.x-10);draw()}}}
-function list(arr,cls){return arr.length?`<ul>${arr.map(d=>`<li><span class="${cls||''}">${esc(d)}</span></li>`).join('')}</ul>`:'<div class="by">None listed</div>'}
-function showPat(p){
- const c=CAT[p.c];
- const blk=(t,arr,col,op)=>`<details ${op?'open':''} style="--c:${col}"><summary>${t}</summary>${list(arr)}</details>`;
- $('#pb').innerHTML=`<span class="tag" style="background:${c.c}">${esc(c.n)}</span><h2>${esc(p.n)}</h2>
- <details open style="--c:${c.c}"><summary>Key points</summary><p style="margin:4px 0">${esc(p.note)}</p></details>
- ${blk('First-line',p.f,'var(--f)',1)}${blk('Alternative',p.a,'var(--a)',1)}${blk('Avoid / intrinsic resistance',p.x,'var(--x)',1)}
- <div class="warn">${p.h?`Source: ${HBN}, ${esc(p.h)}.`:p.nh?'The handbook does not cover this organism; written from general knowledge.':'Not yet checked against the handbook; written from general knowledge.'} Always verify against current guidelines, the local antibiogram, renal function and allergy before prescribing.</div>`;
- $('#panel').classList.add('on');}
-function showDrug(d){
- const rows=[];P.forEach(p=>['f','a','x'].forEach(r=>p[r].forEach(x=>drugBase(x)===d&&rows.push([p,r,x]))));
- $('#pb').innerHTML=`<h2>${esc(d)}</h2><div class="by">Listed for ${rows.length} pathogen entr${rows.length==1?'y':'ies'}</div>`+
- ['f','a','x'].map(r=>{const rr=rows.filter(z=>z[1]===r);return rr.length?`<details open style="--c:${ROLE[r][0]}"><summary>${{f:'First-line',a:'Alternative',x:'Avoid / intrinsic resistance'}[r]}</summary><ul>${rr.map(([p,,x])=>`<li><span class="pl" data-p="${esc(p.n)}">${esc(p.n)}</span>${x!==d?` <span class="by">— ${esc(x)}</span>`:''}</li>`).join('')}</ul></details>`:''}).join('')+
- `<div class="warn">Verify against current guidelines and local resistance.</div>`;
- $('#panel').classList.add('on');}
+function list(arr,cls){return arr.length?`<ul>${arr.map(d=>`<li><span class="${cls||''}">${esc(d)}</span></li>`).join('')}</ul>`:'<div class="by">'+T('none')+'</div>'}
 // events
 const svg=$('#svg'),ptr=new Map();let drag=null,pinch=0,moved=false;
 svg.addEventListener('pointerdown',e=>{ptr.set(e.pointerId,e);moved=false;drag={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y};if(ptr.size==2){const[a,b]=[...ptr.values()];pinch=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)}});
@@ -407,23 +595,25 @@ svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
 svg.addEventListener('wheel',e=>{e.preventDefault();const r=svg.getBoundingClientRect();zoom(e.deltaY<0?1.12:.89,e.clientX-r.left,e.clientY-r.top)},{passive:false});
 $('#zi').onclick=()=>zoom(1.25);$('#zo').onclick=()=>zoom(.8);$('#zf').onclick=fit;
 $('#pc').onclick=()=>{$('#panel').classList.remove('on');sel=null;refresh()};
-$('#pb').addEventListener('click',e=>{const p=e.target.dataset.p;if(p){const pp=P.find(x=>x.n===p);open.clear();for(let g=pp.c;g;g=CAT[g].g)open.add(g);open.add('p:'+p);sel='p:'+p;q='';$('#q').value='';showPat(pp);refresh('p:'+p)}});
+$('#pb').addEventListener('click',e=>{const p=e.target.dataset.p;if(p){const pp=P.find(x=>x.n===p);for(let g=pp.c;g;g=CAT[g].g)open.add(g);open.add('p:'+p);sel='p:'+p;q='';$('#q').value='';showPat(pp);refresh('p:'+p)}});
 $('#q').oninput=e=>{q=e.target.value.trim().toLowerCase();mode==='notes'?renderNotes():fit()};
 // notes view: handwritten-style outline with bracket connectors, same data and open state as the map
 let mode='map',NM={};
 function renderNotes(){
- NM={};const root={key:'root',t:'root',label:'Infectious pathogens',p:null};NM.root=root;
+ NM={};const root={key:'root',t:'root',label:rootLabel(),p:null};NM.root=root;
  const h=(n,d)=>{
   let ks=isOpen(n)?kids(n):[];if(q)ks=ks.filter(hits);
   const canOpen=n.t!=='drug'&&kids(n).length;
   const mark=canOpen?(ks.length?'▾ ':'▸ '):'';
   const tag=n.t==='drug'?`<small style="color:${ROLE[n.role][0]}">${ROLE[n.role][1]}</small> `:'';
-  const cls=['row',sel===n.key?'sel':'',q&&n.t!=='root'&&n.label.toLowerCase().includes(q)?'hit':''].join(' ');
-  const self=n.t==='root'?`<div class="title">• ${esc(n.label)}</div>`:`<div class="${cls}" data-k="${esc(n.key)}" style="color:${n.t==='drug'?ROLE[n.role][0]:''}">${mark}${tag}${esc(n.label)}</div>`;
+  const cls=['row',n.t==='cat'?'grp':'',sel===n.key?'sel':'',q&&n.t!=='root'&&n.label.toLowerCase().includes(q)?'hit':''].join(' ');
+  const self=n.t==='root'?`<div class="title">• ${esc(n.label)}</div>`:`<div class="${cls}" tabindex="0" role="button" aria-label="${esc(n.label)}" data-k="${esc(n.key)}" style="--g:${n.color};color:${n.t==='drug'?ROLE[n.role][0]:`color-mix(in srgb,${n.color} 72%,var(--tx))`}">${mark}${tag}${esc(n.label)}</div>`;
   ks.forEach(k=>{k.p=n;NM[k.key]=k});
-  return`<div class="it d${Math.min(d,3)}">${self}${ks.length?`<div class="kids">${ks.map(k=>h(k,d+1)).join('')}</div>`:''}</div>`};
- $('#notes').innerHTML=h(root,0);}
+  return`<div class="it d${Math.min(d,3)}" style="--ink:${n.t==='drug'?ROLE[n.role][0]:n.color}">${self}${ks.length?`<div class="kids">${ks.map(k=>h(k,d+1)).join('')}</div>`:''}</div>`};
+ $('#notes').innerHTML=h(root,0);updateCount();}
 $('#notes').addEventListener('click',e=>{const r=e.target.closest('.row');r&&click(r.dataset.k)});
+$('#tr').onclick=()=>{tropOnly=!tropOnly;const b=$('#tr');b.setAttribute('aria-pressed',tropOnly);b.style.background=tropOnly?'var(--acc)':'';b.style.color=tropOnly?'#fff':'';b.textContent=tropOnly?'🌴 Tropical ('+P.filter(p=>TROP.has(p.n)).length+')':'🌴 Tropical';mode==='notes'?renderNotes():fit()};
+$('#mq').onclick=()=>{mosqOnly=!mosqOnly;const b=$('#mq');b.setAttribute('aria-pressed',mosqOnly);b.style.background=mosqOnly?'var(--acc)':'';b.style.color=mosqOnly?'#fff':'';b.textContent=mosqOnly?'🦟 Mosquito-borne ('+P.filter(p=>MOSQ.has(p.n)).length+')':'🦟 Mosquito-borne';mode==='notes'?renderNotes():fit()};
 $('#vw').onclick=()=>{mode=mode==='map'?'notes':'map';const nt=mode==='notes';
  $('#notes').style.display=nt?'block':'none';svg.style.display=nt?'none':'block';$('#tools').style.display=nt?'none':'flex';
  $('#vw').textContent=nt?'🗺 Map':'📝 Notes';nt?renderNotes():fit()};
@@ -436,7 +626,87 @@ $('#ver').textContent='v'+changelogData[0].version;
 $('#ver').onclick=()=>{$('#mb').innerHTML='<h2 style="margin-top:0">Changelog</h2>'+changelogData.map(c=>`<h3>v${c.version} · ${c.date}</h3><ul>${c.features.map(f=>`<li>${esc(f)}</li>`).join('')}${c.bugs.map(f=>`<li>Fix: ${esc(f)}</li>`).join('')}</ul>`).join('')+'<button class="ib" style="width:auto;padding:4px 14px;border-radius:8px" id="mx">Close</button>';$('#modal').classList.add('on');$('#mx').onclick=()=>$('#modal').classList.remove('on')};
 $('#modal').onclick=e=>{if(e.target.id==='modal')$('#modal').classList.remove('on')};
 addEventListener('resize',()=>{});
-fit();
+// ---- UI features: Thai/English, saved list, expand/collapse all, share link, keyboard access, dose panel
+const TH_G={bac:'แบคทีเรีย',gpos:'แบคทีเรียแกรมบวก',gpc:'ค็อกคัสแกรมบวก',sta:'Staphylococcus: เรียงเป็นกลุ่ม (catalase +)',cps:'โคแอกูเลสบวก',cns:'โคแอกูเลสลบ (CoNS)',str:'Streptococcus และ Enterococcus: เรียงเป็นคู่/สาย (catalase −)',bhs:'เบต้า-ฮีโมไลติก (สลายสมบูรณ์)',ahs:'อัลฟา-ฮีโมไลติก (สลายบางส่วน)',ghs:'แกมมา-ฮีโมไลติก (ไม่สลาย)',gpb:'บาซิลลัสแกรมบวก',spo:'สร้างสปอร์ ขนาดใหญ่',ana:'ไม่ใช้ออกซิเจน: Clostridium (catalase −)',nsp:'ไม่สร้างสปอร์',sml:'แท่งขนาดเล็ก: Listeria (catalase +)',bea:'แท่งเรียงเป็นเม็ด (beaded rods)',myc:'Mycobacterium (acid-fast)',gneg:'แบคทีเรียแกรมลบ',gnc:'ค็อกคัสแกรมลบ',nei:'Neisseria (ก่อโรค)',gnb:'บาซิลลัสแกรมลบ',mac:'ขึ้นบน MacConkey agar',lf:'ย่อยแลคโทส: วงศ์ Enterobacteriaceae',lnf:'ไม่ย่อยแลคโทส',oxp:'Oxidase (+)',oxn:'Oxidase (−)',ebl:'อันดับ Enterobacterales',eba:'วงศ์ Enterobacteriaceae: Salmonella, Shigella',mor:'วงศ์ Morganellaceae: Proteus',nen:'Non-Enterobacterales',nmc:'ไม่ขึ้นบน MacConkey agar',hox:'Oxidase (แปรผัน): Haemophilus',oxa:'Oxidase (+): ACEK (กลุ่ม HACEK)',spm:'เพาะบนอาหารพิเศษ',anb:'ไม่ใช้ออกซิเจน (ไม่ขึ้นบน MacConkey)',aty:'แบคทีเรียอื่น ๆ (ไม่ได้จัดตามแกรมในคู่มือ)',ncw:'ไม่มีผนังเซลล์',oic:'อยู่ในเซลล์เท่านั้น (obligate intracellular)',spi:'สไปโรคีต',fun:'เชื้อรา',yst:'ยีสต์ (แตกหน่อ)',cnd:'Candida spp.',mld:'รา (มีเส้นใย)',hys:'เส้นใยมีผนังกั้น แตกแขนงแบบ dichotomous',nsh:'เส้นใยกว้าง ไม่มีหรือมีผนังกั้นน้อย',dim:'Dimorphic (รา แต่เป็นยีสต์ที่ 37 °C)',pro:'โปรโตซัว',psy:'โปรโตซัวระบบทั่วร่างกาย',pin:'โปรโตซัวทางเดินอาหาร',pgu:'โปรโตซัวระบบสืบพันธุ์และทางเดินปัสสาวะ',par:'ปรสิต (หนอนพยาธิและปรสิตภายนอก)',nem:'ไส้เดือนกลม (Nematodes)',ces:'พยาธิตัวตืด (Cestodes)',tre:'พยาธิใบไม้ (Trematodes)',ect:'ปรสิตภายนอก',vir:'ไวรัส',vrs:'ไวรัสทางเดินหายใจ',vhp:'ไวรัสตับอักเสบ',vsy:'ไวรัสทั่วร่างกายและที่ทำให้เกิดผื่น',vhv:'เฮอร์พีสไวรัส',vgi:'ไวรัสทางเดินอาหาร',syn:'ตามตำแหน่งที่ติดเชื้อ (ยาเริ่มต้น empirical)'};
+const TX={en:{root:'Infectious pathogens',ph:'Search pathogen or drug…',trop:'🌴 Tropical',mosq:'🦟 Mosquito-borne',saved:'★ Saved',exp:'⊞ Expand',col:'⊟ Collapse',notes:'📝 Notes',map:'🗺 Map',lang:'ไทย',lgf:'First-line',lga:'Alternative',lgx:'Avoid / intrinsic resistance',lgh:'Tap a node to expand · drag to pan · pinch/scroll to zoom',key:'Key points',first:'First-line',emp:'Empirical / first-line',alt:'Alternative',avoid:'Avoid / intrinsic resistance',none:'None listed',copy:'Copy link',save:'Save',source:'Source:',nh:'The handbook does not cover this organism; written from general knowledge.',unchecked:'Not yet checked against the handbook; written from general knowledge.',verify:'Always verify against current guidelines, the local antibiogram, renal function and allergy before prescribing.',dose:'Handbook dose and profile',dclass:'Class',duse:'Used for',ddose:'Dose',dadr:'Important adverse effects',renal:'Most agents need renal dose adjustment (see the handbook).',chg:'Changelog',pat:'pathogens',of:'of',lstd:n=>`Listed for ${n} pathogen entr${n==1?'y':'ies'}`,tt:'Show only tropical infections',tm:'Show only mosquito-borne infections',ts:'Show only saved pathogens'},
+th:{root:'เชื้อก่อโรคติดเชื้อ',ph:'ค้นหาเชื้อหรือยา…',trop:'🌴 โรคเขตร้อน',mosq:'🦟 โรคที่มียุงเป็นพาหะ',saved:'★ ที่บันทึก',exp:'⊞ ขยายทั้งหมด',col:'⊟ ย่อทั้งหมด',notes:'📝 โน้ต',map:'🗺 แผนที่',lang:'EN',lgf:'ทางเลือกแรก',lga:'ทางเลือกอื่น',lgx:'หลีกเลี่ยง / ดื้อยาโดยธรรมชาติ',lgh:'แตะโหนดเพื่อขยาย · ลากเพื่อเลื่อน · บีบหรือเลื่อนล้อเพื่อซูม',key:'ประเด็นสำคัญ',first:'ทางเลือกแรก',emp:'ยาเริ่มต้น (empirical) / ทางเลือกแรก',alt:'ทางเลือกอื่น',avoid:'หลีกเลี่ยง / ดื้อยาโดยธรรมชาติ',none:'ไม่มีรายการ',copy:'คัดลอกลิงก์',save:'บันทึก',source:'แหล่งข้อมูล:',nh:'คู่มือไม่ได้ครอบคลุมเชื้อนี้ เขียนจากความรู้ทั่วไป',unchecked:'ยังไม่ได้ตรวจกับคู่มือ เขียนจากความรู้ทั่วไป',verify:'ตรวจสอบกับแนวทางล่าสุด antibiogram ของสถาบัน การทำงานของไต และประวัติแพ้ยาก่อนสั่งยาเสมอ',dose:'ขนาดยาและข้อมูลจากคู่มือ',dclass:'กลุ่มยา',duse:'ใช้กับ',ddose:'ขนาดยา',dadr:'อาการไม่พึงประสงค์สำคัญ',renal:'ยาส่วนใหญ่ต้องปรับขนาดตามการทำงานของไต (ดูในคู่มือ)',chg:'บันทึกการเปลี่ยนแปลง',pat:'เชื้อ',of:'จาก',lstd:n=>`พบในรายการของเชื้อ ${n} รายการ`,tt:'แสดงเฉพาะโรคเขตร้อน',tm:'แสดงเฉพาะโรคที่มียุงเป็นพาหะ',ts:'แสดงเฉพาะที่บันทึกไว้'}};
+let lang='en';try{const s=localStorage.getItem('pmap-lang');lang=s||((navigator.language||'').toLowerCase().startsWith('th')?'th':'en')}catch(e){}
+const T=k=>TX[lang][k];
+const gl=c=>lang==='th'&&TH_G[c.id]?TH_G[c.id]:c.n;
+const rootLabel=()=>T('root');
+let cur=null,curDrug=null;
+const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+const rerender=()=>mode==='notes'?renderNotes():fit();
+function setB(id,on,label,title){const b=$('#'+id);b.setAttribute('aria-pressed',on);b.style.background=on?'var(--acc)':'';b.style.color=on?'#fff':'';b.textContent=label;if(title)b.title=title}
+function syncBtns(){
+ setB('tr',tropOnly,tropOnly?T('trop')+' ('+P.filter(p=>TROP.has(p.n)).length+')':T('trop'),T('tt'));
+ setB('mq',mosqOnly,mosqOnly?T('mosq')+' ('+P.filter(p=>MOSQ.has(p.n)).length+')':T('mosq'),T('tm'));
+ setB('sv',savedOnly,saved.size?T('saved')+' ('+saved.size+')':T('saved'),T('ts'));
+ $('#vw').textContent=mode==='notes'?T('map'):T('notes');
+ $('#ex').textContent=T('exp');$('#co').textContent=T('col');$('#lg').textContent=T('lang');}
+function applyLang(initial){
+ document.documentElement.lang=lang;$('#q').placeholder=T('ph');
+ $('#lgf').textContent=T('lgf');$('#lga').textContent=T('lga');$('#lgx').textContent=T('lgx');$('#lgh').textContent=T('lgh');
+ syncBtns();if(initial)return;
+ if(cur)showPat(cur);else if(curDrug)showDrug(curDrug);
+ rerender();}
+function updateCount(){
+ const all=P.filter(p=>!p.syn),n=all.filter(p=>okP(p)&&hits({t:'pat',key:'p:'+p.n,label:p.n,data:p})).length;
+ $('#cnt').textContent=n===all.length?all.length+' '+T('pat'):n+' '+T('of')+' '+all.length+' '+T('pat');}
+function doseFor(d){const l=d.toLowerCase();let best=null,bl=0;DOSE.forEach(e=>e[0].forEach(a=>{if((l===a||l.startsWith(a+' ')||l.startsWith(a+'/')||l.startsWith(a+'-'))&&a.length>bl){best=e;bl=a.length}}));return best}
+function showPat(p){
+ const c=CAT[p.c],isS=!!p.syn;cur=p;curDrug=null;
+ const blk=(t,arr,col,op)=>`<details ${op?'open':''} style="--c:${col}"><summary>${t}</summary>${list(arr)}</details>`;
+ const src=p.h?`${T('source')} ${HBN}, ${esc(p.h)}.`:p.nh?T('nh'):T('unchecked');
+ $('#pb').innerHTML=`<span class="tag" style="background:${c.c}">${esc(gl(c))}</span><h2>${esc(p.n)}</h2>
+ <div class="acts"><button class="ib sm" data-cp>🔗 ${T('copy')}</button><button class="ib sm" data-sv aria-pressed="${saved.has(p.n)}">${saved.has(p.n)?'★':'☆'} ${T('save')}</button></div>
+ ${p.note?`<details open style="--c:${c.c}"><summary>${T('key')}</summary><p style="margin:4px 0">${esc(p.note)}</p></details>`:''}
+ ${blk(isS?T('emp'):T('first'),p.f,'var(--f)',1)}${blk(T('alt'),p.a,'var(--a)',1)}${blk(T('avoid'),p.x,'var(--x)',1)}
+ <div class="warn">${src} ${T('verify')}</div>`;
+ $('#panel').classList.add('on');}
+function showDrug(d){
+ cur=null;curDrug=d;
+ const rows=[];P.forEach(p=>['f','a','x'].forEach(r=>p[r].forEach(x=>drugBase(x)===d&&rows.push([p,r,x]))));
+ const ds=doseFor(d),lab={f:T('first'),a:T('alt'),x:T('avoid')};
+ const doseHtml=ds?`<details open style="--c:var(--acc)"><summary>${T('dose')}</summary><ul class="dl"><li><b>${T('dclass')}:</b> ${esc(ds[1])}</li><li><b>${T('duse')}:</b> ${esc(ds[2])}</li><li><b>${T('ddose')}:</b> ${esc(ds[3])}</li>${ds[4]?`<li><b>${T('dadr')}:</b> ${esc(ds[4])}</li>`:''}</ul><div class="by">${T('source')} ${HBN}, pp. 34–38. ${T('renal')}</div></details>`:'';
+ $('#pb').innerHTML=`<h2>${esc(d)}</h2><div class="by">${T('lstd')(rows.length)}</div>${doseHtml}`+
+ ['f','a','x'].map(r=>{const rr=rows.filter(z=>z[1]===r);return rr.length?`<details open style="--c:${ROLE[r][0]}"><summary>${lab[r]}</summary><ul>${rr.map(([p,,x])=>`<li><span class="pl" data-p="${esc(p.n)}" tabindex="0" role="link">${esc(p.n)}</span>${x!==d?` <span class="by">— ${esc(x)}</span>`:''}</li>`).join('')}</ul></details>`:''}).join('')+
+ `<div class="warn">${T('verify')}</div>`;
+ $('#panel').classList.add('on');}
+function setHash(p){try{const h=slug(p.n);if(location.hash!=='#'+h)location.hash=h}catch(e){}}
+function openFromHash(){
+ let h='';try{h=decodeURIComponent(location.hash.slice(1))}catch(e){}
+ const p=h&&P.find(x=>slug(x.n)===h);if(!p||(cur&&cur.n===p.n))return;
+ for(let g=p.c;g;g=CAT[g].g)open.add(g);open.add('p:'+p.n);sel='p:'+p.n;showPat(p);
+ if(mode==='notes'){renderNotes();return}
+ fit();const nn=find(sel);if(nn){const b=svg.getBoundingClientRect();view.x=Math.min(15,b.width*.25-nn.x*view.k);view.y=b.height/2-nn.y*view.k;draw()}}
+addEventListener('hashchange',openFromHash);
+// panel actions: copy link, save / unsave
+$('#pb').addEventListener('click',e=>{
+ if(e.target.closest('[data-cp]')&&cur){const u=location.href.split('#')[0]+'#'+slug(cur.n),b=e.target.closest('[data-cp]');
+  const done=()=>{b.textContent='✓ '+T('copy')};
+  try{navigator.clipboard.writeText(u).then(done,()=>done())}catch(err){done()}}
+ const sv=e.target.closest('[data-sv]');
+ if(sv&&cur){if(saved.has(cur.n))saved.delete(cur.n);else saved.add(cur.n);try{localStorage.setItem('pmap-saved',JSON.stringify([...saved]))}catch(err){}showPat(cur);syncBtns();if(savedOnly)rerender()}});
+$('#pb').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.pl')){e.preventDefault();e.target.click()}});
+// filters and view buttons
+$('#tr').onclick=()=>{tropOnly=!tropOnly;syncBtns();rerender()};
+$('#mq').onclick=()=>{mosqOnly=!mosqOnly;syncBtns();rerender()};
+$('#sv').onclick=()=>{savedOnly=!savedOnly;syncBtns();rerender()};
+$('#ex').onclick=()=>{CATS.forEach(c=>open.add(c.id));rerender()};
+$('#co').onclick=()=>{open.clear();rerender()};
+$('#lg').onclick=()=>{lang=lang==='th'?'en':'th';try{localStorage.setItem('pmap-lang',lang)}catch(e){}applyLang()};
+$('#vw').onclick=()=>{mode=mode==='map'?'notes':'map';const nt=mode==='notes';
+ $('#notes').style.display=nt?'block':'none';svg.style.display=nt?'none':'block';$('#tools').style.display=nt?'none':'flex';syncBtns();nt?renderNotes():fit()};
+$('#ver').onclick=()=>{$('#mb').innerHTML='<h2 style="margin-top:0">'+T('chg')+'</h2>'+changelogData.map(c=>`<h3>v${c.version} · ${c.date}</h3><ul>${c.features.map(f=>`<li>${esc(f)}</li>`).join('')}${c.bugs.map(f=>`<li>Fix: ${esc(f)}</li>`).join('')}</ul>`).join('')+'<button class="ib" style="width:auto;padding:4px 14px;border-radius:8px" id="mx">Close</button>';$('#modal').classList.add('on');$('#mx').onclick=()=>$('#modal').classList.remove('on')};
+// keyboard: Enter / Space open a node, focus returns to it; Escape closes the panel or dialog
+const kact=e=>{if((e.key==='Enter'||e.key===' ')&&e.target.dataset&&e.target.dataset.k&&e.target.matches('.nd,.row')){e.preventDefault();const k=e.target.dataset.k;click(k);setTimeout(()=>{const el=[...document.querySelectorAll('[data-k]')].find(x=>x.dataset.k===k);el&&el.focus()},0)}};
+$('#ng').addEventListener('keydown',kact);$('#notes').addEventListener('keydown',kact);
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#modal').classList.contains('on'))$('#modal').classList.remove('on');else if($('#panel').classList.contains('on'))$('#pc').click()}});
+$('#panel').setAttribute('role','complementary');$('#panel').setAttribute('aria-label','Details');
+applyLang(true);
+
+fit();openFromHash();
 </script>
 </body>
 </html>
