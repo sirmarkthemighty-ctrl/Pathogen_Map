@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pathogen Map</title>
+<script>try{var t=localStorage.getItem('pmap-theme');if(t)document.documentElement.dataset.theme=t;}catch(e){}</script>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--tx:#1c2733;--mut:#5b6b7b;--line:#c9d3de;--acc:#0f6cbd;--f:#17935a;--a:#2a74d0;--x:#cf3b3b}
+:root[data-theme=dark]{--bg:#10161d;--card:#18212b;--tx:#e6edf4;--mut:#9fb0c0;--line:#33424f;--acc:#5aa9f0;--f:#3fc585;--a:#6ea8f0;--x:#f07272}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#10161d;--card:#18212b;--tx:#e6edf4;--mut:#9fb0c0;--line:#33424f;--acc:#5aa9f0;--f:#3fc585;--a:#6ea8f0;--x:#f07272}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--tx);font:14px/1.45 system-ui,"Segoe UI",Tahoma,sans-serif;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;padding:8px 16px;background:var(--card);border-bottom:1px solid var(--line)}
+h1{font-size:17px;margin:0}
+.by{font-size:11px;color:var(--mut)}
+#ver{border:1px solid var(--line);background:none;color:var(--acc);border-radius:99px;padding:1px 9px;font-size:11px;cursor:pointer}
+#q{flex:1 1 180px;min-width:140px;max-width:360px;margin-left:auto;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--tx);font-size:14px}
+.ib{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--card);color:var(--tx);cursor:pointer;font-size:15px;line-height:1}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--mut);padding:4px 16px;background:var(--card);border-bottom:1px solid var(--line);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+main{position:relative;flex:1;min-height:0}
+#svg{width:100%;height:100%;touch-action:none;cursor:grab;display:block}
+.nd{cursor:pointer}
+.nd rect{fill:color-mix(in srgb,var(--c) 14%,var(--card));stroke:var(--c);stroke-width:1.5}
+.nd.root rect,.nd.cat rect{fill:var(--c)}
+.nd.root text,.nd.cat text{fill:#fff;font-weight:600}
+.nd text{fill:var(--tx);font-size:13px;dominant-baseline:central}
+.nd .tg{font-size:10px;fill:var(--mut);font-weight:600}
+.nd.sel rect{stroke-width:3}
+.nd.hit rect{stroke-width:3;stroke-dasharray:none;filter:drop-shadow(0 0 4px var(--c))}
+#notes{display:none;position:absolute;inset:0;overflow:auto;padding:14px 16px 60px;
+ --g:#cfe3f3;background:linear-gradient(var(--g) 1px,transparent 1px) 0 0/26px 26px,linear-gradient(90deg,var(--g) 1px,transparent 1px) 0 0/26px 26px,var(--bg);
+ font:18px/26px "Segoe Print","Bradley Hand","Chalkboard SE","Comic Sans MS",cursive}
+:root[data-theme=dark] #notes{--g:#22313f}
+@media(prefers-color-scheme:dark){:root:not([data-theme=light]) #notes{--g:#22313f}}
+#notes .title{font-size:24px;line-height:36px;margin-bottom:6px}
+#notes .row{cursor:pointer;display:inline-block;padding:0 4px;border-radius:4px}
+#notes .row.sel{background:color-mix(in srgb,var(--acc) 20%,transparent)}
+#notes .row.hit{background:#ffe56b66}
+#notes small{font:600 11px system-ui;margin-right:2px}
+#notes .it{position:relative}
+#notes .kids{margin-left:10px;padding-left:16px}
+#notes .kids>.it:not(:last-child){border-left:2px solid var(--ink)}
+#notes .kids>.it::before{content:'';position:absolute;left:-2px;top:0;width:14px;height:14px;border-left:2px solid var(--ink);border-bottom:2px solid var(--ink);border-bottom-left-radius:7px}
+#notes .kids>.it>.row,#notes .kids>.it>.kids{position:relative}
+#notes .kids>.it{padding-left:0}
+#notes .kids>.it>.row{margin-left:18px}
+#notes .kids>.it>.kids{margin-left:28px}
+#notes .d0{--ink:#2740d6}#notes .d1{--ink:#2740d6}#notes .d2{--ink:#1f9a3d}#notes .d3{--ink:#1f9a3d}
+#notes .d1>.row,#notes .d0>.kids>.it>.row{color:#2740d6}
+#notes .d2>.row{color:#1f9a3d}
+:root[data-theme=dark] #notes .d1>.row,:root[data-theme=dark] #notes .d0>.kids>.it>.row{color:#7d95ff}
+:root[data-theme=dark] #notes .d2>.row{color:#52d17a}
+.ed{fill:none;stroke:var(--line);stroke-width:1.5}
+#tools{position:absolute;left:10px;bottom:10px;display:flex;flex-direction:column;gap:6px}
+#panel{position:absolute;right:0;top:0;bottom:0;width:340px;max-width:100%;background:var(--card);border-left:1px solid var(--line);padding:12px 14px;overflow:auto;transform:translateX(100%);transition:transform .2s}
+#panel.on{transform:none}
+#panel h2{font-size:17px;margin:0 28px 2px 0}
+#panel .cl{position:absolute;right:8px;top:8px}
+.tag{display:inline-block;font-size:11px;padding:1px 8px;border-radius:99px;color:#fff;margin-bottom:6px}
+details{border:1px solid var(--line);border-left:4px solid var(--c,var(--line));border-radius:8px;margin:8px 0;padding:4px 10px}
+summary{cursor:pointer;font-weight:600;font-size:13px}
+details ul{margin:4px 0 6px;padding-left:18px}
+.pl{color:var(--acc);cursor:pointer;text-decoration:underline}
+.warn{font-size:11px;color:var(--mut);margin-top:10px}
+#modal{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;z-index:9}
+#modal.on{display:flex}
+#modal>div{background:var(--card);border-radius:12px;padding:16px;max-width:420px;width:calc(100% - 32px);max-height:80vh;overflow:auto}
+@media(max-width:640px){
+ #panel{top:auto;left:0;width:100%;height:48%;border-left:0;border-top:1px solid var(--line);transform:translateY(100%)}
+ #panel.on{transform:none}
+ header{padding:8px 16px}
+}
+</style>
+</head>
+<body>
+<header>
+ <div><h1>Pathogen Map <button id="ver"></button></h1><div class="by">Interactive pathogen &amp; antimicrobial mind map · Made by Warodom Phaenthong, M.D.</div></div>
+ <input id="q" type="search" placeholder="Search pathogen or drug…" aria-label="Search">
+ <button class="ib" id="vw" style="width:auto;padding:0 12px;border-radius:99px;font-size:13px" title="Switch between mind map and handwritten notes view">📝 Notes</button>
+ <button class="ib" id="th" aria-label="Toggle theme"></button>
+</header>
+<div class="legend"><span><i style="background:var(--f)"></i>First-line</span><span><i style="background:var(--a)"></i>Alternative</span><span><i style="background:var(--x)"></i>Avoid / intrinsic resistance</span><span>Tap a node to expand · drag to pan · pinch/scroll to zoom</span></div>
+<main>
+ <svg id="svg"><g id="vp"><g id="eg"></g><g id="ng"></g></g></svg>
+ <div id="notes"></div>
+ <div id="tools"><button class="ib" id="zi">+</button><button class="ib" id="zo">−</button><button class="ib" id="zf" title="Fit">⤢</button></div>
+ <aside id="panel"><button class="ib cl" id="pc">✕</button><div id="pb"></div></aside>
+</main>
+<div id="modal"><div id="mb"></div></div>
+<script>
+const changelogData=[{version:'1.1.0',date:'November 18, 2026',features:['Drug lists checked against the Siriraj Handbook of Infectious Disease: each checked entry shows its handbook page; unchecked entries are labelled','Added from the handbook: Shigella, EHEC, viruses (VZV, measles, dengue, chikungunya/Zika, influenza, RSV, SARS-CoV-2, hepatitis A/B/C/E, HIV), S. suis, group C/G streptococci, non-typhoidal Salmonella, rickettsiae, M. kansasii, M. abscessus, Pneumocystis, Mucorales, Histoplasma','Mind map of bacteria, fungi, protozoa and parasites (helminths, ectoparasites): 73 pathogens, each with first-line, alternative and avoid drugs','Notes view: handwritten-style outline on grid paper with bracket connectors (toggle next to the theme button)','Gram-positive cocci split by lab test: staphylococci (coagulase-positive / -negative) and streptococci & enterococci (β-, α-, γ-hemolytic)','Tap a drug to see every pathogen that lists it','Search by pathogen or drug; pan and zoom; light/dark theme'],bugs:[]}];
+const CATS=[
+{id:'gpc',n:'Gram-positive cocci',c:'#c0392b'},
+{id:'sta',n:'Staphylococci (catalase +)',c:'#e74c3c'},
+{id:'cps',n:'Coagulase-positive',c:'#a93226'},
+{id:'cns',n:'Coagulase-negative',c:'#cb4335'},
+{id:'str',n:'Streptococci & enterococci (catalase −)',c:'#af601a'},
+{id:'bhs',n:'β-hemolytic (clear zone)',c:'#b9770e'},
+{id:'ahs',n:'α-hemolytic (green zone)',c:'#7d6608'},
+{id:'ghs',n:'γ-hemolytic (no hemolysis)',c:'#935116'},
+{id:'gpb',n:'Gram-positive bacilli',c:'#d35400'},
+{id:'gnc',n:'Gram-negative cocci',c:'#b7950b'},
+{id:'ent',n:'Enterobacterales',c:'#1e8449'},
+{id:'nf',n:'Non-fermenters',c:'#117a8b'},
+{id:'ogn',n:'Other Gram-neg & anaerobes',c:'#2471a3'},
+{id:'aty',n:'Atypicals & spirochetes',c:'#6c3483'},
+{id:'myc',n:'Mycobacteria',c:'#7b4b2a'},
+{id:'fun',n:'Fungi',c:'#566573'},
+{id:'pro',n:'Protozoa',c:'#c2185b'},
+{id:'nem',n:'Nematodes (roundworms)',c:'#6b7a1f'},
+{id:'ces',n:'Cestodes (tapeworms)',c:'#8a6d1d'},
+{id:'tre',n:'Trematodes (flukes)',c:'#a0522d'},
+{id:'ect',n:'Ectoparasites',c:'#5f6a6a'}];
+// hierarchy: top-level groups have no g; others sit under g
+const GRP={sta:'gpc',str:'gpc',cps:'sta',cns:'sta',bhs:'str',ahs:'str',ghs:'str',gpc:'bac',gpb:'bac',gnc:'bac',ent:'bac',nf:'bac',ogn:'bac',aty:'bac',myc:'bac',nem:'par',ces:'par',tre:'par',ect:'par'};
+CATS.unshift({id:'bac',n:'Bacteria',c:'#34495e'});
+CATS.push({id:'par',n:'Parasites (helminths & ectoparasites)',c:'#6b7a1f'});
+CATS.forEach(c=>c.g=GRP[c.id]||null);
+// c=category, f=first-line, a=alternative, x=avoid, note=pearl
+const P=[
+{n:'MSSA',c:'cps',f:['Cloxacillin','Cefazolin'],a:['Cephalexin (mild, oral)','Clindamycin (if susceptible)','TMP-SMX (skin)','Vancomycin (β-lactam allergy)'],x:['Penicillin G'],note:'A β-lactam beats vancomycin for MSSA bacteraemia. Repeat blood cultures, look for a focus, consider echocardiography.'},
+{n:'MRSA',c:'cps',f:['Vancomycin','Daptomycin (not pneumonia)'],a:['Linezolid','Ceftaroline','TMP-SMX (skin)','Doxycycline (skin)','Clindamycin (D-test negative)'],x:['Cloxacillin','Cefazolin'],note:'Daptomycin is inactivated by lung surfactant. Use AUC-guided vancomycin dosing where available.'},
+{n:'Streptococcus agalactiae (GBS)',c:'bhs',f:['Penicillin G / ampicillin'],a:['Cefazolin','Vancomycin (severe β-lactam allergy)'],x:['Clindamycin / erythromycin (resistance common)'],note:'Neonatal sepsis and meningitis, peripartum infection, and invasive disease in diabetes and the elderly. Intrapartum penicillin or ampicillin prophylaxis for colonised mothers.'},
+{n:'Streptococcus pyogenes (GAS)',c:'bhs',f:['Penicillin V / G','Amoxicillin'],a:['Cephalexin','Clindamycin','Macrolide (resistance varies)'],x:[],note:'Add clindamycin in necrotising infection or toxic shock to suppress toxin production. Penicillin resistance has never been reported.'},
+{n:'Viridans group streptococci',c:'ahs',f:['Penicillin G','Ceftriaxone'],a:['Vancomycin (β-lactam allergy)'],x:[],note:'Optochin-resistant, bile-insoluble. Leading cause of native-valve endocarditis; use penicillin MIC to set regimen and duration. Check for dental source.'},
+{n:'Streptococcus gallolyticus (bovis group)',c:'ghs',f:['Penicillin G','Ceftriaxone'],a:['Vancomycin (β-lactam allergy)'],x:[],note:'Group D non-enterococcal. Bacteraemia or endocarditis warrants colonoscopy for colorectal neoplasia.'},
+{n:'Streptococcus pneumoniae',c:'ahs',f:['Amoxicillin (high dose)','Ceftriaxone (severe)'],a:['Levofloxacin / moxifloxacin','Doxycycline (mild)','Vancomycin + ceftriaxone (meningitis)'],x:['Macrolide monotherapy (resistance common)'],note:'Penicillin breakpoints differ for meningitis and non-meningitis. Check local macrolide resistance.'},
+{n:'Enterococcus faecalis',c:'ghs',f:['Ampicillin / amoxicillin'],a:['Ampicillin + ceftriaxone (endocarditis)','Vancomycin','Linezolid','Nitrofurantoin / fosfomycin (cystitis)'],x:['Cephalosporins','Clindamycin','TMP-SMX'],note:'Intrinsically resistant to cephalosporins. Ampicillin plus ceftriaxone is the usual endocarditis regimen.'},
+{n:'Enterococcus faecium (VRE)',c:'ghs',f:['Linezolid','Daptomycin (high dose)'],a:['Tigecycline (not bacteraemia)'],x:['Ampicillin (usually resistant)','Vancomycin'],note:'Most E. faecium are ampicillin-resistant; VRE adds vancomycin resistance. Use high-dose daptomycin for bacteraemia.'},
+{n:'Staphylococcus lugdunensis',c:'cns',f:['Cloxacillin / cefazolin (if methicillin-susceptible)'],a:['Vancomycin (methicillin-resistant)'],x:[],note:'Coagulase-negative but behaves like S. aureus: aggressive endocarditis and bone infection. Treat as S. aureus; never dismiss as a contaminant.'},
+{n:'Staphylococcus saprophyticus',c:'cns',f:['Nitrofurantoin','Fosfomycin'],a:['TMP-SMX','Cephalexin'],x:['Novobiocin (identification only)'],note:'Uncomplicated cystitis in sexually active young women; novobiocin-resistant.'},
+{n:'Coagulase-negative staphylococci',c:'cns',f:['Vancomycin'],a:['Cloxacillin (if methicillin-susceptible)','Linezolid','Daptomycin'],x:[],note:'Frequent blood-culture contaminant; true infection is mainly device or prosthesis related. Rifampicin is an adjunct for prosthetic material only after bacteraemia clears.'},
+{n:'Clostridioides difficile',c:'gpb',f:['Fidaxomicin','Vancomycin (oral)'],a:['Metronidazole (non-severe, if others unavailable)','Vancomycin PO + IV metronidazole (fulminant)'],x:['Anti-motility agents'],note:'Stop the inciting antibiotic if possible. Recurrence: fidaxomicin or tapered vancomycin; consider faecal microbiota transplant.'},
+{n:'Listeria monocytogenes',c:'gpb',f:['Ampicillin (± gentamicin in CNS / severe)'],a:['TMP-SMX'],x:['Cephalosporins (inactive)'],note:'Add ampicillin to empiric meningitis therapy in adults >50 y, pregnancy and immunocompromise.'},
+{n:'Nocardia',c:'gpb',f:['TMP-SMX'],a:['Imipenem','Amikacin','Linezolid'],x:[],note:'Use combination therapy for severe, disseminated or CNS disease; image the brain. Treatment lasts months.'},
+{n:'Neisseria gonorrhoeae',c:'gnc',f:['Ceftriaxone (IM, single dose)'],a:['Gentamicin + azithromycin (if cephalosporin cannot be used)'],x:['Fluoroquinolones','Penicillin','Tetracyclines','Azithromycin monotherapy'],note:'Treat chlamydia with doxycycline if not excluded. Test of cure for pharyngeal infection.'},
+{n:'Neisseria meningitidis',c:'gnc',f:['Ceftriaxone','Penicillin G'],a:['Meropenem','Chloramphenicol'],x:[],note:'Close-contact prophylaxis: ciprofloxacin, rifampicin or ceftriaxone.'},
+{n:'Moraxella catarrhalis',c:'gnc',f:['Amoxicillin-clavulanate'],a:['Cefuroxime','TMP-SMX','Doxycycline'],x:['Amoxicillin / ampicillin alone'],note:'Nearly all isolates produce β-lactamase.'},
+{n:'Escherichia coli',c:'ent',f:['Ceftriaxone (invasive, if susceptible)','Nitrofurantoin (cystitis)','Fosfomycin (cystitis)'],a:['Cefazolin (if susceptible)','TMP-SMX (if susceptible)','Ciprofloxacin / levofloxacin (if susceptible)','Piperacillin-tazobactam'],x:['Ampicillin (high resistance)'],note:'Choose by local antibiogram and the isolate. Reserve carbapenems for ESBL.'},
+{n:'Klebsiella pneumoniae',c:'ent',f:['Ceftriaxone'],a:['Piperacillin-tazobactam','Ciprofloxacin / levofloxacin (if susceptible)','TMP-SMX (if susceptible)'],x:['Ampicillin (intrinsic)'],note:'Hypervirulent strains cause liver abscess and metastatic infection (eye, CNS) — look for these.'},
+{n:'ESBL-producing Enterobacterales',c:'ent',f:['Meropenem','Ertapenem (non-critically ill)'],a:['Nitrofurantoin / fosfomycin (cystitis)','Oral step-down: FQ or TMP-SMX if susceptible'],x:['Ceftriaxone','Piperacillin-tazobactam (bacteraemia)','Cefepime'],note:'MERINO: piperacillin-tazobactam was inferior to meropenem for ceftriaxone-resistant bacteraemia.'},
+{n:'Carbapenem-resistant Enterobacterales (CRE)',c:'ent',f:['Ceftazidime-avibactam (KPC, OXA-48)','Meropenem-vaborbactam (KPC)','Ceftazidime-avibactam + aztreonam (NDM / MBL)'],a:['Cefiderocol','Colistin-based combination','Tigecycline','Fosfomycin (cystitis)'],x:['Carbapenem monotherapy'],note:'Identify the carbapenemase (KPC, NDM, OXA-48, VIM) before choosing; it determines the agent. Involve infectious diseases.'},
+{n:'AmpC producers (Enterobacter, Citrobacter freundii, Serratia)',c:'ent',f:['Cefepime'],a:['Meropenem','Ciprofloxacin / levofloxacin','TMP-SMX'],x:['Ceftriaxone (serious infection)','Piperacillin-tazobactam (serious infection)','Cefazolin'],note:'Inducible AmpC can derepress on therapy; ceftriaxone may fail even if it tests susceptible.'},
+{n:'Salmonella Typhi',c:'ent',f:['Azithromycin','Ceftriaxone'],a:['Ciprofloxacin (only if susceptible)','Meropenem (XDR)'],x:['Fluoroquinolone if nalidixic-acid resistant'],note:'Fluoroquinolone resistance is widespread in Asia. Treat 7–14 days; watch for relapse and perforation.'},
+{n:'Proteus mirabilis',c:'ent',f:['Ampicillin / amoxicillin (if susceptible)','Ceftriaxone'],a:['TMP-SMX','Ciprofloxacin'],x:['Nitrofurantoin','Colistin','Tigecycline / tetracyclines'],note:'Urease producer → struvite stones and alkaline urine.'},
+{n:'Pseudomonas aeruginosa',c:'nf',f:['Piperacillin-tazobactam','Cefepime','Ceftazidime','Meropenem'],a:['Ciprofloxacin','Ceftolozane-tazobactam','Ceftazidime-avibactam','Aminoglycoside (adjunct)'],x:['Ertapenem','Ceftriaxone','TMP-SMX'],note:'Ciprofloxacin or levofloxacin are the only oral options. Use new β-lactams for difficult-to-treat resistance.'},
+{n:'Acinetobacter baumannii',c:'nf',f:['Sulbactam (high dose, e.g. ampicillin-sulbactam)'],a:['Carbapenem (if susceptible)','Colistin-based combination','Cefiderocol'],x:['Ceftriaxone','Ertapenem'],note:'Carbapenem resistance is common in ICUs. Colonisation is frequent; treat clinical infection only.'},
+{n:'Stenotrophomonas maltophilia',c:'nf',f:['TMP-SMX'],a:['Levofloxacin','Minocycline','Cefiderocol','Ceftazidime-avibactam + aztreonam'],x:['Carbapenems (intrinsic)'],note:'Intrinsically carbapenem-resistant; often selected by carbapenem exposure.'},
+{n:'Burkholderia pseudomallei (melioidosis)',c:'nf',f:['Ceftazidime (intensive phase)','Meropenem (intensive phase, severe)'],a:['TMP-SMX (eradication, 3–6 months)','Amoxicillin-clavulanate (eradication, if TMP-SMX not tolerated)','Doxycycline'],x:['Aminoglycosides','Macrolides'],note:'Endemic in north-east Thailand. Intensive phase at least 10–14 days (longer for CNS, bone, prostate), then eradication; short courses relapse.'},
+{n:'Haemophilus influenzae',c:'ogn',f:['Amoxicillin-clavulanate','Ceftriaxone (severe)'],a:['Amoxicillin (if β-lactamase negative)','Doxycycline','Levofloxacin / moxifloxacin'],x:[],note:'A fraction produce β-lactamase; BLNAR strains need cephalosporins.'},
+{n:'Helicobacter pylori',c:'ogn',f:['Bismuth quadruple: PPI + bismuth + tetracycline + metronidazole (14 d)'],a:['Vonoprazan + amoxicillin','Clarithromycin triple (only if susceptible)','Levofloxacin-based (rescue)'],x:['Clarithromycin triple where resistance is high'],note:'Confirm eradication ≥4 weeks after therapy, off PPI 2 weeks. Tailor to local clarithromycin resistance.'},
+{n:'Vibrio cholerae',c:'ogn',f:['Doxycycline (single dose)','Azithromycin (single dose)'],a:['Ciprofloxacin'],x:[],note:'Rehydration is the mainstay; antibiotics shorten illness. Check local resistance.'},
+{n:'Campylobacter jejuni',c:'ogn',f:['Azithromycin'],a:[],x:['Ciprofloxacin (resistance high in Asia)'],note:'Often self-limited; treat if severe, prolonged or immunocompromised.'},
+{n:'Bacteroides fragilis & anaerobes',c:'ogn',f:['Metronidazole','Amoxicillin-clavulanate','Piperacillin-tazobactam'],a:['Carbapenem','Moxifloxacin'],x:['Clindamycin (rising resistance)','Penicillin alone'],note:'Source control is key for abscess and intra-abdominal infection.'},
+{n:'Mycoplasma pneumoniae',c:'aty',f:['Doxycycline','Azithromycin'],a:['Levofloxacin / moxifloxacin'],x:['All β-lactams (no cell wall)'],note:'Macrolide resistance is high in Asia; use doxycycline or a fluoroquinolone if there is no response.'},
+{n:'Legionella pneumophila',c:'aty',f:['Levofloxacin','Azithromycin'],a:['Doxycycline'],x:['β-lactams'],note:'Urinary antigen detects serogroup 1 only. Consider in severe pneumonia, hyponatraemia, diarrhoea.'},
+{n:'Chlamydia trachomatis',c:'aty',f:['Doxycycline (7 days)'],a:['Azithromycin (single dose)'],x:[],note:'Pregnancy: azithromycin or amoxicillin. Treat partners.'},
+{n:'Orientia tsutsugamushi (scrub typhus)',c:'aty',f:['Doxycycline'],a:['Azithromycin (pregnancy, children)','Rifampicin'],x:['β-lactams','Aminoglycosides'],note:'Common in Thailand; give empirically for fever with eschar or rural exposure — do not wait for confirmation.'},
+{n:'Leptospira',c:'aty',f:['Penicillin G or ceftriaxone (severe)','Doxycycline (mild)'],a:['Azithromycin'],x:[],note:'Jarisch-Herxheimer reaction possible. Common after flood exposure.'},
+{n:'Treponema pallidum (syphilis)',c:'aty',f:['Benzathine penicillin G'],a:['Doxycycline (non-neuro, non-pregnant)','Ceftriaxone (neurosyphilis alternative)'],x:['Azithromycin (resistance)'],note:'Neurosyphilis: aqueous penicillin G IV. Pregnancy: penicillin only (desensitise if allergic).'},
+{n:'Mycobacterium tuberculosis',c:'myc',f:['Isoniazid + rifampicin + pyrazinamide + ethambutol (2 mo), then isoniazid + rifampicin (4 mo)'],a:['See rifampicin-resistant regimens (e.g. BPaLM)'],x:[],note:'See the TB Regimen Guide app for full regimens. Test rifampicin resistance (Xpert) on every case.'},
+{n:'Mycobacterium avium complex',c:'myc',f:['Azithromycin + ethambutol + rifampicin'],a:['Inhaled amikacin liposome (refractory)'],x:['Macrolide monotherapy'],note:'Continue until culture-negative for 12 months.'},
+{n:'Candida albicans',c:'fun',f:['Fluconazole (stable)','Echinocandin (candidaemia, severe)'],a:['Amphotericin B'],x:[],note:'Candidaemia: remove central lines and examine the eyes.'},
+{n:'Candida glabrata',c:'fun',f:['Echinocandin (micafungin, caspofungin)'],a:['High-dose fluconazole / voriconazole (if susceptible)','Amphotericin B'],x:['Standard-dose fluconazole'],note:'Often fluconazole-dose-dependent or resistant.'},
+{n:'Aspergillus fumigatus',c:'fun',f:['Voriconazole','Isavuconazole'],a:['Liposomal amphotericin B','Posaconazole'],x:['Fluconazole','Echinocandin monotherapy'],note:'Monitor voriconazole levels.'},
+{n:'Cryptococcus neoformans',c:'fun',f:['Amphotericin B + flucytosine (2 wk induction), then fluconazole'],a:['Fluconazole + flucytosine'],x:['Echinocandins'],note:'Manage raised intracranial pressure with serial lumbar punctures.'},
+{n:'Talaromyces marneffei',c:'fun',f:['Liposomal amphotericin B (2 wk), then itraconazole'],a:['Voriconazole'],x:['Echinocandins'],note:'Seen in advanced HIV (CD4 <100), northern Thailand. Itraconazole secondary prophylaxis until immune recovery.'},
+// ---- Protozoa
+{n:'Plasmodium falciparum',c:'pro',f:['Artemether-lumefantrine','Dihydroartemisinin-piperaquine','Artesunate IV (severe malaria)'],a:['Artesunate + mefloquine','Atovaquone-proguanil','Quinine + doxycycline'],x:['Chloroquine (widespread resistance)','Artemisinin monotherapy'],note:'Artemisinin partial resistance is documented in the Greater Mekong region; use the national guideline combination. Add single low-dose primaquine as gametocidal where recommended (check G6PD).'},
+{n:'Plasmodium vivax',c:'pro',f:['Chloroquine (where susceptible) or artemisinin combination, plus primaquine (radical cure)'],a:['Tafenoquine (after G6PD test)','Artemether-lumefantrine'],x:['Primaquine in G6PD deficiency or pregnancy'],note:'Hypnozoites cause relapse, so a radical-cure drug is needed. Test G6PD before primaquine or tafenoquine. Severe vivax: IV artesunate.'},
+{n:'Plasmodium knowlesi',c:'pro',f:['Artemether-lumefantrine (non-severe)','Artesunate IV (severe)'],a:['Chloroquine (non-severe)'],x:[],note:'Macaque-borne in South-East Asia; parasitaemia can rise fast and cause severe disease. Microscopy may mistake it for P. malariae.'},
+{n:'Entamoeba histolytica',c:'pro',f:['Metronidazole or tinidazole, then a luminal agent (paromomycin)'],a:['Diloxanide furoate (luminal)'],x:['Luminal agent alone for invasive disease','Corticosteroids'],note:'Tissue agent plus luminal agent for colitis and liver abscess. Liver abscess usually responds without drainage.'},
+{n:'Giardia lamblia',c:'pro',f:['Tinidazole (single dose)','Nitazoxanide','Metronidazole (5–7 days)'],a:['Albendazole','Paromomycin (pregnancy)'],x:[],note:'Relapse and lactose intolerance after treatment are common.'},
+{n:'Cryptosporidium',c:'pro',f:['Nitazoxanide'],a:['Antiretroviral therapy / immune restoration (HIV)'],x:[],note:'Self-limited when immunocompetent. In HIV, immune recovery is the main treatment.'},
+{n:'Toxoplasma gondii',c:'pro',f:['Pyrimethamine + sulfadiazine + leucovorin'],a:['TMP-SMX','Pyrimethamine + clindamycin','Atovaquone','Spiramycin (pregnancy, fetal prevention)'],x:[],note:'Cerebral toxoplasmosis in HIV: treat, re-image at 2 weeks, then long-term suppression.'},
+{n:'Trypanosoma cruzi (Chagas)',c:'pro',f:['Benznidazole','Nifurtimox'],a:[],x:[],note:'Americas; most benefit is in acute and early chronic disease. Not endemic in Thailand.'},
+{n:'Leishmania (visceral)',c:'pro',f:['Liposomal amphotericin B'],a:['Miltefosine','Sodium stibogluconate','Paromomycin'],x:[],note:'Regimen depends on species and region. Autochthonous cases are rare in Thailand.'},
+{n:'Trichomonas vaginalis',c:'pro',f:['Metronidazole (7 days in women)'],a:['Tinidazole','Metronidazole single dose (men)'],x:[],note:'Treat partners. Avoid alcohol with metronidazole or tinidazole.'},
+// ---- Nematodes
+{n:'Ascaris lumbricoides',c:'nem',f:['Albendazole','Mebendazole'],a:['Ivermectin','Pyrantel pamoate'],x:[],note:'Intestinal or biliary obstruction in heavy infection. Albendazole is safe after the first trimester.'},
+{n:'Hookworm (Ancylostoma, Necator)',c:'nem',f:['Albendazole','Mebendazole'],a:['Pyrantel pamoate'],x:[],note:'Causes iron-deficiency anaemia; replace iron.'},
+{n:'Strongyloides stercoralis',c:'nem',f:['Ivermectin'],a:['Albendazole (less effective)'],x:['Corticosteroids without prior treatment'],note:'Autoinfection allows hyperinfection with steroids or HTLV-1. Screen and treat before immunosuppression; eosinophilia may be absent in hyperinfection.'},
+{n:'Trichuris trichiura',c:'nem',f:['Albendazole + ivermectin'],a:['Mebendazole'],x:[],note:'Single-dose albendazole alone has low cure rates.'},
+{n:'Enterobius vermicularis',c:'nem',f:['Albendazole (repeat in 2 weeks)','Mebendazole (repeat in 2 weeks)'],a:['Pyrantel pamoate'],x:[],note:'Treat the whole household and wash bedding.'},
+{n:'Lymphatic filariae (Wuchereria, Brugia)',c:'nem',f:['Diethylcarbamazine (DEC)'],a:['Albendazole + ivermectin + DEC','Doxycycline (macrofilaricidal)'],x:['DEC when onchocerciasis or loiasis is possible'],note:'Brugia malayi occurs in southern Thailand. Doxycycline plus hygiene care helps lymphoedema.'},
+{n:'Gnathostoma spinigerum',c:'nem',f:['Albendazole (21 days)'],a:['Ivermectin'],x:[],note:'From raw or undercooked freshwater fish; causes migratory swellings and eosinophilic meningitis. Surgical removal when accessible.'},
+{n:'Angiostrongylus cantonensis',c:'nem',f:['Supportive care + prednisolone','Serial lumbar punctures (raised pressure)'],a:['Albendazole (role debated)'],x:[],note:'Eosinophilic meningitis after raw snails or slugs; common in Thailand. Anthelmintics are controversial because dying worms may worsen inflammation.'},
+// ---- Cestodes
+{n:'Taenia solium (neurocysticercosis)',c:'ces',f:['Albendazole ± praziquantel + corticosteroids'],a:['Antiseizure drugs','Surgery / shunt for hydrocephalus'],x:['Antiparasitic drugs without steroids','Antiparasitic drugs before checking for eye cysts'],note:'Examine the fundus first. Adult tapeworm carriers are treated with praziquantel.'},
+{n:'Echinococcus granulosus',c:'ces',f:['Albendazole (peri-procedural)','Surgery or PAIR for suitable cysts'],a:['Watch and wait (inactive cysts)'],x:['Cyst puncture without albendazole cover'],note:'Albendazole is given before and after intervention.'},
+// ---- Trematodes
+{n:'Opisthorchis viverrini',c:'tre',f:['Praziquantel'],a:['Albendazole'],x:[],note:'North-east and northern Thailand, from raw fermented fish (koi pla). Chronic infection raises cholangiocarcinoma risk.'},
+{n:'Schistosoma species',c:'tre',f:['Praziquantel'],a:['Oxamniquine (S. mansoni, limited)'],x:[],note:'Repeat praziquantel after 4–6 weeks because immature worms are not killed. Not endemic in Thailand.'},
+{n:'Fasciola hepatica',c:'tre',f:['Triclabendazole'],a:['Nitazoxanide'],x:['Praziquantel (ineffective)'],note:'Liver fluke; chronic biliary disease.'},
+{n:'Paragonimus species',c:'tre',f:['Praziquantel'],a:['Triclabendazole'],x:[],note:'Lung fluke from raw crab; mimics tuberculosis.'},
+// ---- Ectoparasites
+{n:'Sarcoptes scabiei (scabies)',c:'ect',f:['Permethrin 5% cream'],a:['Oral ivermectin','Benzyl benzoate'],x:[],note:'Treat close contacts at the same time and wash bedding. Itch can persist for weeks after cure.'},
+{n:'Pediculus humanus capitis (head lice)',c:'ect',f:['Permethrin 1%','Dimeticone'],a:['Oral ivermectin'],x:[],note:'Repeat after 7–10 days. Resistance to permethrin is widespread.'}
+];
+// ---- Siriraj "Handbook of Infectious Disease" (HB): overrides + new entries. h = printed page numbers.
+CATS.push({id:'vir',n:'Viruses',c:'#0e7490',g:null},{id:'vrs',n:'Respiratory viruses',c:'#0891b2',g:'vir'},{id:'vhp',n:'Hepatitis viruses',c:'#9a3412',g:'vir'},{id:'vsy',n:'Systemic & exanthematous viruses',c:'#7c3aed',g:'vir'});
+const HBN='Siriraj Handbook of Infectious Disease';
+const HB={
+'MSSA':{h:'pp. 217–221',f:['Cloxacillin 2 g IV q6h (q4h for bacteraemia)','Cefazolin 2 g IV q8h (penicillin allergy)'],a:['Dicloxacillin 500 mg PO q6h (mild SSTI)','Clindamycin 300–450 mg PO / 600 mg IV','Vancomycin (load 25–30 mg/kg, severe β-lactam allergy)'],x:[],note:'Bacteraemia: look for septic joint, abscess, osteomyelitis, foreign body, endocarditis; TTE/TEE. Bone and joint: 6–8 weeks, with surgery as needed.'},
+'MRSA':{h:'pp. 217–221',f:['Vancomycin (load 25–30 mg/kg, then 15–20 mg/kg IV q12h)'],a:['Linezolid 600 mg IV/PO q12h (SSTI)','Clindamycin 600 mg IV q8h (SSTI, bone)','Rifampicin (adjunct, prosthetic valve) ','Fusidic acid'],x:['Cloxacillin / cefazolin'],note:'Endocarditis: native valve 6 weeks; prosthetic valve vancomycin + rifampicin + gentamicin.'},
+'Streptococcus pyogenes (GAS)':{h:'pp. 224–225',f:['Penicillin V 500 mg PO bid × 10 d','Amoxicillin 1 g daily or 500 mg bid × 10 d','Benzathine penicillin 1.2 MU IM single dose'],a:['Cephalexin 500 mg PO bid × 10 d','Clindamycin 300 mg PO tid × 10 d','Clarithromycin / azithromycin','Dicloxacillin / cephalexin (impetigo, ecthyma)'],x:[],note:'Necrotising fasciitis and toxic shock: penicillin G 4 MU IV q4h + clindamycin 600–900 mg IV q8h with debridement. Rheumatic fever secondary prophylaxis: benzathine penicillin.'},
+'Streptococcus agalactiae (GBS)':{h:'p. 227',f:['Penicillin G 12–24 MU/day (24 MU/day for meningitis, endocarditis)'],a:['Ampicillin 12 g/day','Gentamicin added for endocarditis / abscess','Vancomycin (β-lactam allergy)'],x:['Fluoroquinolones, macrolides, clindamycin (bacteraemia, meningitis, endocarditis)'],note:'Duration: bacteraemia/SSTI by site; meningitis 10–14 d; endocarditis 4–6 wk; osteomyelitis 3–4 wk.'},
+'Viridans group streptococci':{h:'p. 236',f:['Penicillin G (penicillin MIC <0.12)'],a:['Penicillin G + gentamicin (MIC 0.25–2)','Cephalosporins','Vancomycin','Linezolid','Daptomycin'],x:[],note:'Treatment depends on penicillin MIC. S. anginosus group causes abscesses (liver, brain, lung, abdominal).'},
+'Streptococcus gallolyticus (bovis group)':{h:'p. 237',f:['Penicillin','Ampicillin','Cephalosporins'],a:[],x:[],note:'Treat as for viridans streptococci. S. gallolyticus subsp. gallolyticus bacteraemia/endocarditis is linked with colorectal neoplasia.'},
+'Streptococcus pneumoniae':{h:'pp. 231–232',f:['Amoxicillin (high dose; otitis media, sinusitis)','Penicillin G / ampicillin / amoxicillin (pneumonia, penicillin MIC <2)','Ceftriaxone / cefotaxime (MIC ≥2, severe, meningitis)'],a:['Macrolides','Oral / IV cephalosporins','Respiratory fluoroquinolones','Doxycycline','Vancomycin ± rifampicin or ceftriaxone (meningitis, resistant)','Linezolid'],x:[],note:'Meningitis uses CNS doses; duration 10–14 d.'},
+'Enterococcus faecalis':{h:'pp. 239–242',f:['Ampicillin / amoxicillin'],a:['Piperacillin','Imipenem','Ampicillin + gentamicin (endocarditis, if aminoglycoside synergy)','Ampicillin + ceftriaxone (endocarditis, no synergy)','Levofloxacin (non-serious)','Nitrofurantoin / fosfomycin / amoxicillin (cystitis)'],x:['Cephalosporins (intrinsic resistance)','Aminoglycoside monotherapy'],note:'Test high-level aminoglycoside resistance for synergy before adding gentamicin / streptomycin.'},
+'Enterococcus faecium (VRE)':{h:'pp. 239–242',f:['Linezolid 600 mg IV/PO q12h','Daptomycin (high dose, MIC <4; with a β-lactam)'],a:['Tigecycline (SSTI, intra-abdominal only)','Teicoplanin (vanB strains)','Fosfomycin (urinary)'],x:['Cephalosporins (intrinsic resistance)','Aminoglycoside monotherapy'],note:'Ampicillin-resistant E. faecium: use vancomycin, or linezolid if also vancomycin-resistant.'},
+'Clostridioides difficile':{h:'pp. 246–248',f:['Vancomycin 125 mg PO qid × 10 d','Fidaxomicin 200 mg PO bid × 10 d'],a:['Metronidazole 500 mg PO tid × 10 d (non-severe)','Fulminant: vancomycin 500 mg PO qid + metronidazole 500 mg IV q8h (rectal vancomycin if ileus)','Recurrence: tapered / pulsed vancomycin, fidaxomicin, vancomycin then rifaximin 400 mg tid × 20 d, faecal microbiota transplant'],x:[],note:'Stop the inciting antibiotic if possible. Change metronidazole to vancomycin if no response in 5–7 days.'},
+'Klebsiella pneumoniae':{h:'pp. 249–251',f:[],a:[],x:['Ampicillin / amoxicillin (intrinsic resistance)'],note:'The handbook chapter has no drug table; choose by susceptibility (see ESBL and CRE entries). Hypervirulent strains (capsule K1/K2): liver abscess, endophthalmitis, meningitis — scan the liver and eyes.'},
+'ESBL-producing Enterobacterales':{h:'pp. 265–268',f:['Carbapenem: meropenem, imipenem, doripenem, biapenem','Ertapenem (de-escalation when stable; not if albumin is low)'],a:['Piperacillin-tazobactam (only if already started and responding well)','Aminoglycoside (upper urinary tract)','Sitafloxacin PO (step-down)','Fosfomycin PO / nitrofurantoin (cystitis)','Amoxicillin-clavulanate PO (cystitis, if susceptible)'],x:['Ceftriaxone'],note:'Ertapenem suits outpatient (OPAT) therapy.'},
+'Carbapenem-resistant Enterobacterales (CRE)':{h:'pp. 265–268',f:['Ceftazidime-avibactam (if susceptible)'],a:['Colistin-based combination (+ fosfomycin, sitafloxacin, tigecycline, or extended-infusion meropenem)','Tigecycline monotherapy (non-bacteraemic, non-severe)','Double-carbapenem therapy (tip box)','Cystitis: fosfomycin PO, single-dose aminoglycoside or colistin'],x:[],note:'Colistin loading dose 300 mg. Choose combinations by antibiogram.'},
+'Pseudomonas aeruginosa':{h:'pp. 265–268',f:['Piperacillin-tazobactam (extended infusion)','Ceftolozane-tazobactam'],a:['Colistin-based combination (XDR)','Aminoglycoside / colistin (upper urinary tract)','Cystitis: fosfomycin PO / nitrofurantoin if susceptible'],x:['Ertapenem (intrinsic resistance)'],note:'Handbook covers multidrug-resistant strains; use a β-lactam monotherapy if susceptible.'},
+'Acinetobacter baumannii':{h:'pp. 265–268',f:['Cefoperazone-sulbactam (if susceptible)','Sulbactam (high dose, 12–24 g/day)'],a:['Colistin-based combination (XDR; + fosfomycin, sitafloxacin, tigecycline)','Tigecycline monotherapy (non-bacteraemic, non-severe)'],x:[],note:'Use a β-lactam monotherapy if susceptible; colistin loading dose 300 mg.'},
+'Salmonella Typhi':{h:'pp. 255–256',f:['Ciprofloxacin 1,000 mg/day, ofloxacin 800 mg/day or levofloxacin 500–750 mg/day × 5–7 d (uncomplicated)','Ceftriaxone 2 g/day','Azithromycin 1 g/day'],a:['Cefixime 400 mg/day','Co-trimoxazole × 7–14 d','Severe: IV ciprofloxacin / levofloxacin / ceftriaxone / cotrimoxazole × 10–14 d'],x:['First/second-generation cephalosporins','Aminoglycosides (treatment failure)'],note:'High-dose dexamethasone (3 mg/kg, then 1 mg/kg q6h × 48 h) for encephalopathy or shock. Chronic carrier: ≥4 weeks of fluoroquinolone or co-trimoxazole.'},
+'Burkholderia pseudomallei (melioidosis)':{h:'p. 261',f:['Ceftazidime 2 g IV q8h (intensive phase, empirical 48 h)'],a:['Imipenem 1 g IV q8h / meropenem (intensive phase)','Eradication: TMP-SMX 8/40 mg/kg bid','Eradication: amoxicillin-clavulanate 20/5 mg/kg tid'],x:[],note:'Intensive phase 1–2 weeks or until clinically better; total 3–5 months (5 months for disseminated disease, bacteraemia or multiple abscesses). Drain abscesses.'},
+'Nocardia':{h:'pp. 271–272',f:['Co-trimoxazole (TMP 15 mg/kg/day) + amikacin or imipenem (severe / CNS)'],a:['Ceftriaxone / cefotaxime','Linezolid','Imipenem 500 mg IV q6h','Amikacin 15 mg/kg/day IV'],x:[],note:'Combination therapy for severe disease; 6–12 months of therapy (12 for CNS / immunocompromised). Prophylaxis co-trimoxazole in at-risk patients.'},
+'Neisseria gonorrhoeae':{h:'p. 191',f:['Ceftriaxone 250–500 mg IM single dose + azithromycin 1 g PO single dose'],a:['Cefixime 400 mg PO single dose + azithromycin 1 g','Gentamicin 240 mg IM + azithromycin 2 g','Meningitis: ceftriaxone 1–2 g IV q12–24h (10–14 d); endocarditis 4 weeks'],x:['Fluoroquinolones (resistance)'],note:'Disseminated infection: ceftriaxone 1 g IM/IV daily. Pharyngitis: ceftriaxone + azithromycin.'},
+'Chlamydia trachomatis':{h:'pp. 191–192',f:['Azithromycin 1 g PO single dose','Doxycycline 100 mg PO bid × 7 d'],a:['Erythromycin','Levofloxacin 500 mg daily × 7 d','Ofloxacin 300 mg bid × 7 d','Amoxicillin 500 mg tid × 7 d (pregnancy)'],x:[],note:'LGV: doxycycline 100 mg bid × 21 d. Treat partners.'},
+'Treponema pallidum (syphilis)':{h:'p. 194',f:['Benzathine penicillin G 2.4 MU IM (early syphilis, single dose)','Benzathine penicillin G 2.4 MU IM weekly × 3 (late latent / unknown duration)','Neurosyphilis: aqueous crystalline penicillin G 18–24 MU/day IV × 10–14 d'],a:['Doxycycline 100 mg bid × 14 d (28 d late)','Tetracycline 500 mg qid','Ceftriaxone 1 g IV/IM daily × 10–14 d','Procaine penicillin + probenecid (neurosyphilis)'],x:['Azithromycin (T. pallidum resistance)'],note:'Pregnancy: penicillin only (desensitise if allergic).'},
+'Trichomonas vaginalis':{h:'p. 193',f:['Metronidazole 2 g PO single dose','Tinidazole 2 g PO single dose'],a:['Metronidazole 500 mg bid × 7 d (HIV, recurrent)'],x:[],note:'Treat partners. Avoid alcohol with metronidazole or tinidazole.'},
+'Orientia tsutsugamushi (scrub typhus)':{h:'pp. 102–105',f:['Doxycycline 100 mg PO bid × 7 d'],a:['Azithromycin 500 mg PO daily × 3 d','Chloramphenicol'],x:[],note:'Give empirically in acute undifferentiated fever with eschar or rural exposure; ceftriaxone + doxycycline if septic.'},
+'Leptospira':{h:'pp. 102–105',f:['Penicillin G 1.5 MU IV q6h (severe)','Ceftriaxone 1 g IV q24h (severe)'],a:['Doxycycline 200 mg/day × 7 d (mild; handbook AUF algorithm)','Azithromycin 500 mg/day × 3 d (mild)'],x:[],note:'Severe disease may need organ support (pulmonary haemorrhage, AKI).'},
+'Mycobacterium tuberculosis':{h:'pp. 274–281',f:['HRZE 2 months, then HR 4 months (2HRZE/4HR)'],a:['Isoniazid-resistant: levofloxacin + RZE × 6 months','Rifampicin-resistant / MDR-TB: shorter all-oral bedaquiline-containing regimen (9–11 months)','Individualised longer regimen (18–20 months)'],x:[],note:'CNS and pericardial TB: corticosteroids; TB meningitis extends first-line therapy to 12 months. Pyridoxine with isoniazid. See the TB Regimen Guide app.'},
+'Mycobacterium avium complex':{h:'pp. 286–288',f:['Azithromycin or clarithromycin + ethambutol + rifampicin'],a:['Amikacin IV or nebulised (cavitary / severe disease)','Moxifloxacin'],x:[],note:'Treat until culture-negative for 12 months.'},
+'Candida albicans':{h:'pp. 339–341',f:['Echinocandin: micafungin 100 mg/day, caspofungin 70 mg then 50 mg/day, anidulafungin 200 mg then 100 mg/day'],a:['Liposomal amphotericin B 3–5 mg/kg/day','Fluconazole (step-down when stable and susceptible; 800 mg then 400 mg/day)','Voriconazole'],x:[],note:'Source control: remove central lines, examine the eyes.'},
+'Candida glabrata':{h:'pp. 339–341',f:['Echinocandin'],a:['Liposomal amphotericin B','Fluconazole only if susceptible'],x:['Fluconazole (susceptible dose-dependent or resistant)'],note:'C. krusei: naturally fluconazole-resistant. C. auris: echinocandin first.'},
+'Aspergillus fumigatus':{h:'p. 355',f:['Voriconazole 6 mg/kg IV q12h × 1 day, then 4 mg/kg q12h (or 200 mg PO q12h)'],a:['Liposomal amphotericin B 3–5 mg/kg/day','Isavuconazole','Itraconazole / posaconazole / echinocandin (salvage)'],x:[],note:'Voriconazole trough 1.0–1.5 µg/mL minimum, avoid >5.5–6.0. Duration at least 6–12 weeks. Rifampicin interaction.'},
+'Cryptococcus neoformans':{h:'pp. 345–346',f:['Amphotericin B deoxycholate 0.7–1.0 mg/kg/day + flucytosine 100 mg/kg/day × 2 weeks, then fluconazole 400–800 mg/day × 8 weeks'],a:['Amphotericin B + fluconazole 800 mg × 2 weeks','WHO: amphotericin B + flucytosine × 1 week, then fluconazole 1,200 mg × 1 week','Fluconazole 1,200 mg + flucytosine × 2 weeks','Maintenance fluconazole 200 mg/day (until CD4 >100 for ≥6 months)','Non-CNS: fluconazole 400 mg/day × 6 months'],x:[],note:'Opening pressure >25 cmH2O: therapeutic lumbar puncture.'},
+'Talaromyces marneffei':{h:'p. 362',f:['Liposomal amphotericin B 3–5 mg/kg/day × 2 weeks (or amphotericin B 0.7 mg/kg)'],a:['Voriconazole 6 mg/kg q12h × 1 day, then 4 mg/kg q12h × 2 weeks','Consolidation: itraconazole 200 mg bid × 10 weeks','Maintenance: itraconazole 200 mg/day'],x:[],note:'Prophylaxis: itraconazole 200 mg/day when CD4 <100 in endemic areas.'},
+'Plasmodium falciparum':{h:'pp. 377–378',f:['Artesunate + mefloquine (3 days)','Dihydroartemisinin-piperaquine (3 days)','Artemether-lumefantrine (3 days)','Artesunate IV 2.4 mg/kg at 0, 12, 24 h, then daily (severe)'],a:['Primaquine 15 mg (gametocidal, single dose)'],x:[],note:'Artemisinin-based combination therapy (ACT). Check G6PD before primaquine.'},
+'Plasmodium vivax':{h:'p. 378',f:['Chloroquine 25 mg/kg over 3 days + primaquine 0.5 mg/kg (15–30 mg) × 14 d (radical cure)'],a:['Primaquine 0.75 mg/kg weekly × 8 weeks (mild G6PD deficiency)','ACT (artemisinin combination)'],x:['Primaquine in G6PD deficiency (severe)'],note:'Hypnozoites cause relapse; test G6PD first.'},
+'Entamoeba histolytica':{h:'pp. 65–67',f:['Metronidazole 500–750 mg tid × 10 d or tinidazole, then luminal agent'],a:['Paromomycin 8–12 mg/kg tid × 7 d (luminal)','Iodoquinol 650 mg tid × 20 d (luminal)'],x:[],note:'Asymptomatic carriers: luminal agent only.'},
+'Giardia lamblia':{h:'pp. 65–67',f:['Tinidazole 2 g PO single dose','Metronidazole 250 mg tid × 5–7 d','Nitazoxanide 500 mg bid × 3 d'],a:[],x:[],note:''},
+'Cryptosporidium':{h:'pp. 65–67',f:['Nitazoxanide 500 mg bid × 3 d'],a:[],x:[],note:''},
+'Toxoplasma gondii':{h:'pp. 381–383',f:['Pyrimethamine (200 mg load, then 50–75 mg/day) + sulfadiazine 1–1.5 g qid + leucovorin 10–25 mg/day'],a:['Co-trimoxazole (TMP 10 mg/kg/day)','Pyrimethamine + leucovorin + clindamycin 600 mg qid','Pyrimethamine + leucovorin + atovaquone / azithromycin'],x:[],note:'HIV: primary prophylaxis co-trimoxazole 2 tab daily when CD4 <100; stop when CD4 >200 for 3 months.'},
+'Leishmania (visceral)':{h:'pp. 66–67',f:['Liposomal amphotericin B (3 mg/kg days 1–5, 14, 21; immunocompromised 4 mg/kg schedule)'],a:['Sodium stibogluconate 20 mg/kg/day × 28 d','Miltefosine 2.5 mg/kg/day (max 150 mg) × 28 d','Paromomycin 15 mg/kg/day IM × 21 d'],x:[],note:'Handbook lists liposomal amphotericin B as first-line.'},
+'Strongyloides stercoralis':{h:'p. 369',f:['Ivermectin 200 µg/kg/day × 2 days'],a:['Albendazole 400 mg bid × 7 d (less effective)','Disseminated / hyperinfection: ivermectin until clear for 2 weeks; subcutaneous ivermectin if ileus'],x:['Corticosteroids without prior treatment'],note:'Serology can cross-react with filariasis and schistosomiasis. Gram-negative sepsis or recurrent meningitis may signal hyperinfection.'},
+'Taenia solium (neurocysticercosis)':{h:'p. 373',f:['1–2 viable cysts: albendazole 15 mg/kg/day × 10–14 d','>2 viable cysts: albendazole + praziquantel 50 mg/kg/day × 10–14 d'],a:['Dexamethasone 0.1 mg/kg/day (with antiparasitics)','Antiepileptic drugs','VP shunt (hydrocephalus)','Surgical removal (ventricular, subarachnoid, spinal, ocular)'],x:['Antiparasitic drugs for calcified cysts only'],note:'Adult tapeworm: praziquantel 5–10 mg/kg single dose or niclosamide 2 g single dose.'},
+'Opisthorchis viverrini':{h:'p. 69',f:['Praziquantel 25 mg/kg tid × 2 days'],a:['Albendazole 10 mg/kg/day × 7 d'],x:[],note:''},
+'Fasciola hepatica':{h:'p. 69',f:['Triclabendazole 10 mg/kg bid (2 doses)'],a:['Nitazoxanide 500 mg bid × 7 d'],x:['Praziquantel (not effective)'],note:''},
+'Paragonimus species':{h:'p. 69',f:['Praziquantel 25 mg/kg tid × 2 days'],a:['Triclabendazole 10 mg/kg bid (2 doses)'],x:[],note:''},
+'Schistosoma species':{h:'p. 69',f:['Praziquantel 20 mg/kg bid × 1 day (S. mansoni, S. haematobium); tid × 1 day (S. japonicum)'],a:[],x:[],note:''},
+'Ascaris lumbricoides':{h:'p. 70',f:['Albendazole 400 mg single dose','Mebendazole 500 mg single dose (or 100 mg bid × 3 d)'],a:['Ivermectin 150–200 µg/kg single dose'],x:[],note:''},
+'Hookworm (Ancylostoma, Necator)':{h:'p. 70',f:['Albendazole 400 mg single dose','Mebendazole'],a:[],x:[],note:''},
+'Trichuris trichiura':{h:'p. 70',f:['Albendazole 400 mg daily × 3 d','Mebendazole'],a:['Ivermectin'],x:[],note:''},
+'Enterobius vermicularis':{h:'p. 70',f:['Albendazole 400 mg single dose, repeat in 2 weeks','Mebendazole'],a:[],x:[],note:'Treat the whole household.'},
+'Lymphatic filariae (Wuchereria, Brugia)':{h:'pp. 69–71',f:['Diethylcarbamazine (DEC) 2 mg/kg tid ± doxycycline 200 mg/day × 6 weeks'],a:['DEC + albendazole','Ivermectin first where onchocerciasis / loiasis co-exist'],x:['DEC with high Loa loa microfilaraemia (encephalopathy risk)'],note:'Doxycycline reduces lymphoedema.'},
+'Gnathostoma spinigerum':{h:'p. 70',f:['Albendazole 400 mg bid × 21 d'],a:['Ivermectin 200 µg/kg × 2 days'],x:[],note:''},
+'Angiostrongylus cantonensis':{h:'p. 70',f:['Albendazole 400 mg bid × 21 d + corticosteroid'],a:['Therapeutic lumbar puncture (raised pressure)'],x:[],note:'Eosinophilic meningitis.'},
+'Echinococcus granulosus':{h:'p. 70',f:['Albendazole 400 mg bid × 1–6 months'],a:['PAIR (puncture, aspiration, injection, re-aspiration) with 95% alcohol'],x:[],note:''},
+'Sarcoptes scabiei (scabies)':{h:'p. 71',f:['Permethrin 5% cream'],a:['Benzyl benzoate 25%','Ivermectin 200 µg/kg, repeat in 2 weeks','Crusted: permethrin or benzyl benzoate + ivermectin (days 1, 2, 8, 9, 15)'],x:[],note:''},
+'Pediculus humanus capitis (head lice)':{h:'pp. 71–72',f:['Permethrin 1% lotion'],a:['Benzyl benzoate 25%','Malathion 0.5% lotion'],x:[],note:''}
+};
+P.forEach(p=>{const o=HB[p.n];if(o)Object.assign(p,o)});
+P.push(
+{n:'Streptococcus suis',c:'ahs',h:'pp. 233–234',f:['Penicillin G 24 MU/day IV','Ampicillin 12 g/day IV'],a:['Cephalosporins','Vancomycin','Co-trimoxazole'],x:[],note:'Zoonosis from pigs / raw pork; meningitis with hearing loss, bacteraemia, toxic-shock-like illness, endocarditis. Long courses for endocarditis (4–6 weeks).'},
+{n:'Streptococcus dysgalactiae (group C / G)',c:'bhs',h:'pp. 228–229',f:['Penicillin','Cephalosporins'],a:['Gentamicin added for endocarditis / meningitis','Vancomycin (β-lactam allergy)'],x:[],note:'Behaves like S. pyogenes: pharyngitis, SSTI, bacteraemia, septic arthritis, endocarditis.'},
+{n:'Non-typhoidal Salmonella',c:'ent',h:'p. 255',f:['Ceftriaxone / cefotaxime (invasive)','Ciprofloxacin / levofloxacin'],a:['Ampicillin (if susceptible)','Co-trimoxazole (if susceptible)'],x:[],note:'Invasive disease: bacteraemia, endovascular infection, bone/joint; 14 days, longer for extra-intestinal foci. Risk: HIV, anti-interferon-γ autoantibodies, steroids.'},
+{n:'Rickettsia typhi & spotted fever group',c:'aty',h:'pp. 102–105',f:['Doxycycline 100 mg PO bid × 7 d'],a:['Azithromycin 500 mg PO daily × 3 d','Chloramphenicol'],x:[],note:'Murine typhus and spotted fever: treat empirically in acute undifferentiated fever.'},
+{n:'Mycobacterium kansasii',c:'myc',h:'p. 287',f:['Rifampicin 600 mg + ethambutol 15 mg/kg + isoniazid 300 mg daily'],a:['Clarithromycin (replacing isoniazid)','Moxifloxacin'],x:[],note:'Treat until culture-negative for 12 months.'},
+{n:'Mycobacterium abscessus',c:'myc',h:'pp. 287–288',f:['Macrolide (clarithromycin / azithromycin) + IV amikacin + cefoxitin / imipenem / tigecycline'],a:['Oral step-down: clofazimine, linezolid, minocycline, moxifloxacin, co-trimoxazole'],x:[],note:'Check for macrolide resistance (constitutive or inducible); guide by susceptibility.'},
+{n:'Pneumocystis jirovecii (PJP)',c:'fun',h:'pp. 350–351',f:['Co-trimoxazole (TMP 15–20 mg/kg/day) × 21 d'],a:['Clindamycin + primaquine','Pentamidine IV','Atovaquone 750 mg bid (mild)','Add prednisolone if PaO2 <70 mmHg (40 mg bid × 5 d, then taper)'],x:[],note:'Prophylaxis co-trimoxazole 1–2 tab daily (HIV CD4 <200); dapsone alternative.'},
+{n:'Mucorales (mucormycosis)',c:'fun',h:'p. 359',f:['Liposomal amphotericin B 5–10 mg/kg/day + radical surgical debridement'],a:['Posaconazole (salvage / maintenance)','Isavuconazole (salvage / maintenance)'],x:[],note:'Surgery is part of treatment; control diabetes / acidosis.'},
+{n:'Histoplasma capsulatum',c:'fun',h:'p. 363',f:['Liposomal amphotericin B 3 mg/kg/day × 1–2 weeks, then itraconazole 200 mg tid × 3 d, then bid × 12 months'],a:['Itraconazole alone (less severe)','Posaconazole / voriconazole'],x:[],note:'Itraconazole interacts with efavirenz, nevirapine and some protease inhibitors.'},
+// ---- Viruses
+{n:'Varicella-zoster virus',c:'vsy',h:'pp. 293–298',f:['Acyclovir 800 mg PO 5 times/day × 5–7 d (start within 24 h)'],a:['Valacyclovir / famciclovir','Acyclovir 30 mg/kg/day IV ÷ q8h × 7–10 d (disseminated, immunocompromised, ophthalmicus, trigeminal)'],x:[],note:'Airborne + contact precautions for chickenpox and disseminated zoster. Post-exposure: VZIG or acyclovir 7–14 d in high-risk susceptible contacts.'},
+{n:'Measles virus',c:'vsy',h:'pp. 299–303',f:['Supportive care','Vitamin A (two daily doses, age-based)'],a:['Ribavirin IV / aerosol (severe or immunocompromised; not approved)'],x:[],note:'Airborne precautions. Post-exposure: MMR within 72 h or immunoglobulin within 6 days.'},
+{n:'Dengue virus',c:'vsy',h:'pp. 306–312',f:['Supportive: isotonic fluids guided by haematocrit','Paracetamol'],a:[],x:['NSAIDs / aspirin'],note:'No antiviral. NS1 antigen (days 1–5), RT-PCR. Plasma leakage at defervescence; watch warning signs, Hct, platelets.'},
+{n:'Chikungunya & Zika virus',c:'vsy',h:'pp. 310–312',f:['Supportive: paracetamol'],a:['NSAIDs (once dengue excluded)','Hydroxychloroquine / methotrexate (chronic chikungunya arthritis)'],x:[],note:'Chikungunya: symmetric polyarthralgia. Zika: congenital Zika syndrome; fetal ultrasound in pregnancy.'},
+{n:'Influenza virus',c:'vrs',h:'pp. 313–315',f:['Oseltamivir (start within 48 h; give to severe cases regardless of onset)'],a:['Zanamivir','Peramivir','Baloxavir'],x:['Amantadine (resistance)'],note:'Droplet precautions. Empirical oseltamivir in severe respiratory illness in season.'},
+{n:'Respiratory syncytial virus (RSV)',c:'vrs',h:'pp. 315–316',f:['Supportive care'],a:['Ribavirin (aerosol 2 g q8h, or oral 10 mg/kg tid; immunocompromised / HSCT)'],x:[],note:'Palivizumab 15 mg/kg IM monthly for high-risk infants.'},
+{n:'SARS-CoV-2 (COVID-19)',c:'vrs',h:'pp. 317–319',f:['Oxygen + dexamethasone 6 mg/day (hypoxaemia)','Remdesivir 200 mg IV then 100 mg/day'],a:['Favipiravir','Tocilizumab / baricitinib (severe)','Monoclonal antibodies'],x:[],note:'Handbook edition predates current variants; check current Thai COVID-19 guidance.'},
+{n:'Hepatitis A virus',c:'vhp',h:'pp. 320–321',f:['Supportive care'],a:[],x:[],note:'Prevention: inactivated vaccine (2 doses, 6–12 months apart).'},
+{n:'Hepatitis B virus',c:'vhp',h:'pp. 321–323',f:['Tenofovir (TDF 300 mg or TAF 25 mg daily)','Entecavir 0.5 mg daily'],a:[],x:[],note:'Treat if immune-clearance / escape phase with raised ALT and HBV DNA, or significant fibrosis. Pregnancy: TDF from week 24–28 if viral load high; newborn HBIG + vaccine.'},
+{n:'Hepatitis C virus',c:'vhp',h:'pp. 324–325',f:['Sofosbuvir/ledipasvir × 12 weeks','Sofosbuvir/velpatasvir × 12 weeks'],a:[],x:[],note:'Direct-acting antivirals: SVR >95%. Check genotype, fibrosis, renal function.'},
+{n:'Hepatitis E virus',c:'vhp',h:'pp. 325–326',f:['Supportive care'],a:['Ribavirin 600 mg/day × 3 months (chronic HEV in immunocompromised)'],x:[],note:'Genotype 3/4 zoonotic; chronic infection in transplant, haematologic malignancy, HIV with low CD4.'},
+{n:'HIV',c:'vir',h:'pp. 327–334',f:['Dolutegravir-based ART: TDF + 3TC (or FTC) + dolutegravir 50 mg'],a:['2 NRTIs + NNRTI (efavirenz 400 mg, rilpivirine 25 mg)','2 NRTIs + boosted protease inhibitor','Dolutegravir + lamivudine dual therapy (HBsAg-negative, suppressed, CD4 >200)'],x:['Stavudine / didanosine (toxicity)'],note:'With rifampicin: dolutegravir 50 mg bid or efavirenz. PrEP: TDF/FTC daily (or on-demand, MSM). PEP 28 days: TDF + 3TC (or FTC) + dolutegravir.'}
+);
+
+// ---- Handbook pass 2 (UTI, GI, CNS, URTI, CRBSI, intra-abdominal, drug table)
+const HB2={
+'Coagulase-negative staphylococci':{h:'p. 142',f:['Cloxacillin / cefazolin (methicillin-susceptible)','Vancomycin (methicillin-resistant)'],a:['Daptomycin','Linezolid'],x:[],note:'CRBSI: remove short-term catheters; antibiotic lock therapy for long-term catheters (pp. 140–145). One positive peripheral culture of CoNS is usually a contaminant.'},
+'Staphylococcus lugdunensis':{h:'p. 142',f:['Cloxacillin / cefazolin (methicillin-susceptible)','Vancomycin (methicillin-resistant)'],a:['Daptomycin','Linezolid'],x:[],note:'The handbook CRBSI table lists it alongside S. aureus; treat as for staphylococcal bacteraemia.'},
+'Staphylococcus saprophyticus':{h:'pp. 163, 165',f:['Nitrofurantoin 100 mg tid/qid × 5 d','Fosfomycin 3 g PO single dose'],a:['Cefixime 200 mg PO bid','Ciprofloxacin 500 mg PO bid × 3 d'],x:[],note:'Community-acquired cystitis pathogen.'},
+'Listeria monocytogenes':{h:'pp. 37, 211',f:['Ampicillin (added to a 3rd-generation cephalosporin in meningitis: age >50, immunocompromised, pregnancy)'],a:['Co-trimoxazole'],x:['Cephalosporins alone (do not cover Listeria)'],note:'Dexamethasone is advised for pneumococcal meningitis (0.15 mg/kg IV q6h).'},
+'Neisseria meningitidis':{h:'p. 211',f:['Ceftriaxone (3rd-generation cephalosporin) ± vancomycin until pneumococcus excluded'],a:[],x:[],note:'Handbook gives empirical meningitis regimens by age and risk group.'},
+'Moraxella catarrhalis':{h:'pp. 120–122',f:['Amoxicillin-clavulanate 875/125 mg bid'],a:['Levofloxacin 500 mg daily','Doxycycline'],x:[],note:'About 15% of acute bacterial sinusitis; also otitis media.'},
+'Haemophilus influenzae':{h:'pp. 120–122, 211',f:['Amoxicillin-clavulanate (sinusitis 875/125 mg bid × 10 d; 2,000/125 mg if severe)','Ceftriaxone (meningitis, severe)'],a:['Levofloxacin 500 mg daily','Doxycycline','Amoxicillin (otitis media, 80–90 mg/kg/day)'],x:[],note:'30–40% of acute bacterial sinusitis.'},
+'Escherichia coli':{h:'pp. 165–166',f:['Nitrofurantoin 100 mg tid/qid × 5 d (cystitis)','Fosfomycin 3 g PO single dose (cystitis)','Ceftriaxone 2 g IV daily × 10–14 d (pyelonephritis)','Gentamicin 240 mg IV daily × 7–10 d (pyelonephritis)'],a:['Cefixime 200 mg PO bid (cystitis)','Ciprofloxacin 500 mg PO bid × 3 d (cystitis) / 400 mg IV q12h (pyelonephritis)','Ertapenem 1 g IV daily (ESBL)','Piperacillin-tazobactam (nosocomial)'],x:[],note:'Choose by antibiogram. Bacteraemic UTI: IV-to-PO step-down.'},
+'Proteus mirabilis':{h:'p. 162',f:['3rd-generation cephalosporin (ceftriaxone)'],a:['UTI regimens as for E. coli'],x:[],note:'Handbook names Proteus as a cause of renal and perinephric abscess; 3rd-generation cephalosporin is its listed treatment.'},
+'Stenotrophomonas maltophilia':{h:'pp. 37, 143',f:['Co-trimoxazole'],a:['Levofloxacin'],x:[],note:''},
+'Vibrio cholerae':{h:'p. 148',f:['Azithromycin 500 mg PO daily × 3 d'],a:[],x:[],note:'Oral rehydration is the main treatment; Ringer lactate IV if severe (p. 150).'},
+'Campylobacter jejuni':{h:'p. 148',f:['Azithromycin 500 mg PO daily × 3 d'],a:[],x:[],note:''},
+'Bacteroides fragilis & anaerobes':{h:'pp. 154, 157, 160',f:['Metronidazole (with a 3rd-generation cephalosporin)','Cefoxitin (monotherapy, community intra-abdominal)','Piperacillin-tazobactam'],a:['Carbapenems (hospital-onset)'],x:[],note:'Intra-abdominal infection: 4–7 days of therapy. Biliary-enteric anastomosis: add metronidazole.'},
+'Mycoplasma pneumoniae':{h:'pp. 122, 127',f:['Macrolide (azithromycin, clarithromycin)','Respiratory fluoroquinolone'],a:['Doxycycline (10–14 d)'],x:[],note:'CAP atypical coverage: β-lactam + macrolide, or respiratory fluoroquinolone.'},
+'Legionella pneumophila':{h:'pp. 126–127',f:['Respiratory fluoroquinolone','Macrolide (azithromycin)'],a:[],x:[],note:'Urinary antigen detects L. pneumophila serogroup 1.'},
+'Non-typhoidal Salmonella':{h:'pp. 148, 255',f:['Ceftriaxone / cefotaxime (invasive)','Ciprofloxacin 500 mg bid × 7 d (severe or high-risk gastroenteritis; 14 d if immunocompromised)'],a:['Ampicillin (if susceptible)','Co-trimoxazole (if susceptible)'],x:['Antibiotics for uncomplicated gastroenteritis (prolong carriage)'],note:'High-risk: age >50, vascular graft or prosthesis, atherosclerosis. Invasive disease: 14 days, longer for extra-intestinal foci.'}
+};
+P.forEach(p=>{const o=HB2[p.n];if(o)Object.assign(p,o)});
+['AmpC producers (Enterobacter, Citrobacter freundii, Serratia)','Helicobacter pylori','Plasmodium knowlesi','Trypanosoma cruzi (Chagas)'].forEach(n=>{const p=P.find(x=>x.n===n);if(p)p.nh=1});
+P.push(
+{n:'Shigella',c:'ent',h:'p. 148',f:['Ceftriaxone 2 g IV daily × 5 d','Ciprofloxacin 500 mg PO bid × 3 d'],a:[],x:[],note:'Bloody diarrhoea (inflammatory gastroenteritis).'},
+{n:'Enterohemorrhagic E. coli (EHEC / STEC)',c:'ent',h:'p. 148',f:['Supportive care'],a:[],x:['All antibiotics (raise haemolytic uraemic syndrome risk)'],note:''}
+);
+
+const $=s=>document.querySelector(s),CAT=Object.fromEntries(CATS.map(c=>[c.id,c]));
+const esc=s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const ROLE={f:['var(--f)','1st'],a:['var(--a)','alt'],x:['var(--x)','avoid']};
+const drugBase=d=>d.replace(/\s*[(\d].*$/,'').trim()||d;
+let open=new Set(),sel=null,q='',view={x:20,y:20,k:1},nodes=[];
+const ctx=document.createElement('canvas').getContext('2d');ctx.font='13px system-ui';
+const W=t=>ctx.measureText(t).width;
+function kids(n){
+ if(n.t==='root'||n.t==='cat'){
+  const g=n.t==='root'?null:n.key;
+  return[...CATS.filter(c=>c.g===g).map(c=>({key:c.id,t:'cat',label:c.n,color:c.c,data:c})),
+   ...P.filter(p=>p.c===g).map(p=>({key:'p:'+p.n,t:'pat',label:p.n,color:CAT[p.c].c,data:p}))];}
+ if(n.t==='pat')return['f','a','x'].flatMap(r=>n.data[r].map(d=>({key:n.key+r+d,t:'drug',role:r,label:d,color:ROLE[r][0],data:n.data})));
+ return[];}
+function hits(n){ // does node or descendant match query
+ if(!q)return true;
+ if(n.t==='drug')return n.label.toLowerCase().includes(q);
+ if(n.label.toLowerCase().includes(q))return true;
+ return kids(n).some(hits);}
+function isOpen(n){ if(n.t==='drug')return false; if(q)return n.t==='root'||(n.t==='cat')||kids(n).some(k=>k.t==='drug'&&hits(k)); return n.t==='root'||open.has(n.key);}
+function layout(){
+ nodes=[];const edges=[];let y=0;const ROW=34;
+ const root={key:'root',t:'root',label:'Infectious pathogens',color:'#0f6cbd'};
+ (function walk(n,d,parent){
+  n.d=d;n.p=parent;let ks=isOpen(n)?kids(n):[];
+  if(q)ks=ks.filter(hits);
+  n.more=!ks.length&&n.t!=='drug'&&kids(n).length;
+  if(!ks.length){n.y=y;y+=ROW}else{ks.forEach(k=>walk(k,d+1,n));n.y=(ks[0].y+ks[ks.length-1].y)/2}
+  nodes.push(n);if(parent)edges.push([parent,n]);})(root,0,null);
+ const mw=[];nodes.forEach(n=>{n.w=Math.ceil(W(n.label))+(n.t==='drug'?40:26)+(n.more?16:0);mw[n.d]=Math.max(mw[n.d]||0,n.w)});
+ const xs=[0];for(let i=1;i<mw.length;i++)xs[i]=xs[i-1]+mw[i-1]+38;
+ nodes.forEach(n=>n.x=xs[n.d]);
+ return edges;}
+function draw(anchor){
+ const old=anchor&&nodes.find(n=>n.key===anchor),ox=old&&old.x*view.k+view.x,oy=old&&old.y*view.k+view.y;
+ const edges=layout();
+ if(old){const nn=nodes.find(n=>n.key===anchor);view.x+=ox-(nn.x*view.k+view.x);view.y+=oy-(nn.y*view.k+view.y)}
+ $('#eg').innerHTML=edges.map(([a,b])=>{const x1=a.x+a.w,y1=a.y,x2=b.x,y2=b.y,m=(x1+x2)/2;return`<path class="ed" d="M${x1} ${y1}C${m} ${y1} ${m} ${y2} ${x2} ${y2}"/>`}).join('');
+ $('#ng').innerHTML=nodes.map(n=>{
+  const h=26,cls=['nd',n.t,sel===n.key?'sel':'',q&&n.t!=='root'&&n.label.toLowerCase().includes(q)?'hit':''].join(' ');
+  const tg=n.t==='drug'?`<text class="tg" x="9" y="0">${ROLE[n.role][1]}</text>`:'';
+  const tx=n.t==='drug'?40:12;
+  const mark=n.more?`<text x="${n.w-14}" y="0" style="font-size:11px">▸</text>`:'';
+  return`<g class="${cls}" data-k="${esc(n.key)}" style="--c:${n.color}" transform="translate(${n.x} ${n.y})"><rect y="${-h/2}" width="${n.w}" height="${h}" rx="${n.t==='root'?13:7}"/>${tg}<text x="${tx}" y="0">${esc(n.label)}</text>${mark}</g>`}).join('');
+ $('#vp').setAttribute('transform',`translate(${view.x} ${view.y}) scale(${view.k})`);}
+function fit(){
+ draw();const b=$('#svg').getBoundingClientRect();
+ const w=Math.max(...nodes.map(n=>n.x+n.w)),h=Math.max(...nodes.map(n=>n.y))+30;
+ view.k=Math.min(1.2,(b.width-30)/w,(b.height-30)/h);if(view.k<.5)view.k=Math.min(.7,Math.max(.5,view.k));
+ view.x=15;view.y=b.height/2-(nodes.find(n=>n.t==='root').y*view.k);draw();}
+function zoom(f,cx,cy){const b=$('#svg').getBoundingClientRect();cx=cx==null?b.width/2:cx;cy=cy==null?b.height/2:cy;
+ const k=Math.min(2.5,Math.max(.25,view.k*f)),r=k/view.k;view.x=cx-(cx-view.x)*r;view.y=cy-(cy-view.y)*r;view.k=k;draw();}
+function find(key){return mode==='notes'?NM[key]:nodes.find(n=>n.key===key)}
+function refresh(key){mode==='notes'?renderNotes():draw(key)}
+function click(key){
+ const n=find(key);if(!n)return;
+ if(n.t==='cat'||n.t==='pat'){
+  // accordion: keep only the ancestors of this node, plus the node itself when opening
+  const was=open.has(key);open=new Set();
+  for(let a=n.p;a&&a.t!=='root';a=a.p)open.add(a.key);
+  if(!was)open.add(key);
+  if(n.t==='pat'){sel=key;showPat(n.data)}
+ }else if(n.t==='drug'){sel=key;showDrug(drugBase(n.label))}
+ if(mode==='notes'){renderNotes();return}
+ draw(key);
+ if(n.t==='pat'||n.t==='drug'){ // keep the node and its leaves clear of the panel
+  const b=svg.getBoundingClientRect(),pw=b.width>640?340:0,nn=find(key);
+  const kidsW=n.t==='pat'?Math.max(...nodes.filter(z=>z.p&&z.p.key===key).map(z=>z.w),0)+60:0;
+  const right=(nn.x+nn.w+kidsW)*view.k+view.x,lim=b.width-pw-12;
+  if(right>lim){view.x-=Math.min(right-lim,nn.x*view.k+view.x-10);draw()}}}
+function list(arr,cls){return arr.length?`<ul>${arr.map(d=>`<li><span class="${cls||''}">${esc(d)}</span></li>`).join('')}</ul>`:'<div class="by">None listed</div>'}
+function showPat(p){
+ const c=CAT[p.c];
+ const blk=(t,arr,col,op)=>`<details ${op?'open':''} style="--c:${col}"><summary>${t}</summary>${list(arr)}</details>`;
+ $('#pb').innerHTML=`<span class="tag" style="background:${c.c}">${esc(c.n)}</span><h2>${esc(p.n)}</h2>
+ <details open style="--c:${c.c}"><summary>Key points</summary><p style="margin:4px 0">${esc(p.note)}</p></details>
+ ${blk('First-line',p.f,'var(--f)',1)}${blk('Alternative',p.a,'var(--a)',1)}${blk('Avoid / intrinsic resistance',p.x,'var(--x)',1)}
+ <div class="warn">${p.h?`Source: ${HBN}, ${esc(p.h)}.`:p.nh?'The handbook does not cover this organism; written from general knowledge.':'Not yet checked against the handbook; written from general knowledge.'} Always verify against current guidelines, the local antibiogram, renal function and allergy before prescribing.</div>`;
+ $('#panel').classList.add('on');}
+function showDrug(d){
+ const rows=[];P.forEach(p=>['f','a','x'].forEach(r=>p[r].forEach(x=>drugBase(x)===d&&rows.push([p,r,x]))));
+ $('#pb').innerHTML=`<h2>${esc(d)}</h2><div class="by">Listed for ${rows.length} pathogen entr${rows.length==1?'y':'ies'}</div>`+
+ ['f','a','x'].map(r=>{const rr=rows.filter(z=>z[1]===r);return rr.length?`<details open style="--c:${ROLE[r][0]}"><summary>${{f:'First-line',a:'Alternative',x:'Avoid / intrinsic resistance'}[r]}</summary><ul>${rr.map(([p,,x])=>`<li><span class="pl" data-p="${esc(p.n)}">${esc(p.n)}</span>${x!==d?` <span class="by">— ${esc(x)}</span>`:''}</li>`).join('')}</ul></details>`:''}).join('')+
+ `<div class="warn">Verify against current guidelines and local resistance.</div>`;
+ $('#panel').classList.add('on');}
+// events
+const svg=$('#svg'),ptr=new Map();let drag=null,pinch=0,moved=false;
+svg.addEventListener('pointerdown',e=>{ptr.set(e.pointerId,e);moved=false;drag={x:e.clientX,y:e.clientY,vx:view.x,vy:view.y};if(ptr.size==2){const[a,b]=[...ptr.values()];pinch=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY)}});
+svg.addEventListener('pointermove',e=>{if(!ptr.has(e.pointerId))return;ptr.set(e.pointerId,e);
+ if(ptr.size==2){const[a,b]=[...ptr.values()],d=Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY),r=svg.getBoundingClientRect();if(pinch){zoom(d/pinch,(a.clientX+b.clientX)/2-r.left,(a.clientY+b.clientY)/2-r.top)}pinch=d;moved=true;return}
+ if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(Math.abs(dx)+Math.abs(dy)>4)moved=true;if(moved){view.x=drag.vx+dx;view.y=drag.vy+dy;$('#vp').setAttribute('transform',`translate(${view.x} ${view.y}) scale(${view.k})`)}});
+const up=e=>{const was=ptr.size;ptr.delete(e.pointerId);if(!ptr.size){drag=null;pinch=0;if(!moved&&was==1&&e.type==='pointerup'){const g=document.elementFromPoint(e.clientX,e.clientY)?.closest('.nd');g&&click(g.dataset.k)}}};
+svg.addEventListener('pointerup',up);svg.addEventListener('pointercancel',up);
+svg.addEventListener('wheel',e=>{e.preventDefault();const r=svg.getBoundingClientRect();zoom(e.deltaY<0?1.12:.89,e.clientX-r.left,e.clientY-r.top)},{passive:false});
+$('#zi').onclick=()=>zoom(1.25);$('#zo').onclick=()=>zoom(.8);$('#zf').onclick=fit;
+$('#pc').onclick=()=>{$('#panel').classList.remove('on');sel=null;refresh()};
+$('#pb').addEventListener('click',e=>{const p=e.target.dataset.p;if(p){const pp=P.find(x=>x.n===p);open.clear();for(let g=pp.c;g;g=CAT[g].g)open.add(g);open.add('p:'+p);sel='p:'+p;q='';$('#q').value='';showPat(pp);refresh('p:'+p)}});
+$('#q').oninput=e=>{q=e.target.value.trim().toLowerCase();mode==='notes'?renderNotes():fit()};
+// notes view: handwritten-style outline with bracket connectors, same data and open state as the map
+let mode='map',NM={};
+function renderNotes(){
+ NM={};const root={key:'root',t:'root',label:'Infectious pathogens',p:null};NM.root=root;
+ const h=(n,d)=>{
+  let ks=isOpen(n)?kids(n):[];if(q)ks=ks.filter(hits);
+  const canOpen=n.t!=='drug'&&kids(n).length;
+  const mark=canOpen?(ks.length?'▾ ':'▸ '):'';
+  const tag=n.t==='drug'?`<small style="color:${ROLE[n.role][0]}">${ROLE[n.role][1]}</small> `:'';
+  const cls=['row',sel===n.key?'sel':'',q&&n.t!=='root'&&n.label.toLowerCase().includes(q)?'hit':''].join(' ');
+  const self=n.t==='root'?`<div class="title">• ${esc(n.label)}</div>`:`<div class="${cls}" data-k="${esc(n.key)}" style="color:${n.t==='drug'?ROLE[n.role][0]:''}">${mark}${tag}${esc(n.label)}</div>`;
+  ks.forEach(k=>{k.p=n;NM[k.key]=k});
+  return`<div class="it d${Math.min(d,3)}">${self}${ks.length?`<div class="kids">${ks.map(k=>h(k,d+1)).join('')}</div>`:''}</div>`};
+ $('#notes').innerHTML=h(root,0);}
+$('#notes').addEventListener('click',e=>{const r=e.target.closest('.row');r&&click(r.dataset.k)});
+$('#vw').onclick=()=>{mode=mode==='map'?'notes':'map';const nt=mode==='notes';
+ $('#notes').style.display=nt?'block':'none';svg.style.display=nt?'none':'block';$('#tools').style.display=nt?'none':'flex';
+ $('#vw').textContent=nt?'🗺 Map':'📝 Notes';nt?renderNotes():fit()};
+// theme
+function setIcon(){const d=document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches;$('#th').textContent=d?'☀️':'🌙'}
+$('#th').onclick=()=>{const d=document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':matchMedia('(prefers-color-scheme:dark)').matches,n=d?'light':'dark';document.documentElement.dataset.theme=n;try{localStorage.setItem('pmap-theme',n)}catch(e){}setIcon()};
+setIcon();
+// changelog
+$('#ver').textContent='v'+changelogData[0].version;
+$('#ver').onclick=()=>{$('#mb').innerHTML='<h2 style="margin-top:0">Changelog</h2>'+changelogData.map(c=>`<h3>v${c.version} · ${c.date}</h3><ul>${c.features.map(f=>`<li>${esc(f)}</li>`).join('')}${c.bugs.map(f=>`<li>Fix: ${esc(f)}</li>`).join('')}</ul>`).join('')+'<button class="ib" style="width:auto;padding:4px 14px;border-radius:8px" id="mx">Close</button>';$('#modal').classList.add('on');$('#mx').onclick=()=>$('#modal').classList.remove('on')};
+$('#modal').onclick=e=>{if(e.target.id==='modal')$('#modal').classList.remove('on')};
+addEventListener('resize',()=>{});
+fit();
+</script>
+</body>
+</html>
