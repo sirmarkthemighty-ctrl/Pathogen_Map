@@ -26,10 +26,11 @@ antibiogram, hospital protocols, renal function and allergy checks, or clinical 
 ## Sources and what is missing
 
 Drug lists were checked against the Siriraj *Handbook of Infectious Disease* (Faculty of Medicine
-Siriraj Hospital, Mahidol University). Nearly every entry cites the printed handbook page in its panel; lists are
+Siriraj Hospital, Mahidol University). About 170 pathogens plus 15 infection-site entries; nearly every entry cites the printed handbook page in its panel; lists are
 condensed, not quoted. **Five entries are not covered by the handbook** (AmpC producers, *H. pylori*, *T. cruzi*,
-yellow fever, West Nile virus) and are labelled as written from general knowledge. Handbook groups with no treatment
-information (for example *Bacillus*, *Brucella*, *Francisella*) are not in the map.
+yellow fever, West Nile virus) and are labelled as written from general knowledge. Every organism named in the handbook's Gram-stain
+diagrams is in the map; those the handbook gives no treatment for (for example *Bacillus*, *Brucella*,
+*Francisella*) show no drugs and say so in their panel.
 
 The handbook was read from a scan, partly by OCR; the drug dose table and the checked details were confirmed on the
 page images, but verify any dose you rely on. The COVID-19 entry reflects the handbook's edition; check current
