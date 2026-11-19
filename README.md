@@ -3,7 +3,7 @@
 
 A bedside and teaching tool by Warodom Phaenthong, M.D. It is one self-contained HTML page
 (`pathogen-map.html`, opened by `index.html`) that runs in the browser, with no installation and no data
-sent anywhere. Version 0.8.6 (beta).
+sent anywhere. Version 0.8.8 (beta).
 
 It is decision support for healthcare professionals. It does not replace the source documents, your local
 antibiogram, hospital protocols, renal function and allergy checks, or clinical judgement.
@@ -12,7 +12,7 @@ antibiogram, hospital protocols, renal function and allergy checks, or clinical 
 
 ## What it does
 
-- **230 pathogens** plus 15 infection-site (empirical therapy) entries, in two views: **Notes** (handwritten-style
+- **248 pathogens** plus 15 infection-site (empirical therapy) entries, in two views: **Notes** (handwritten-style
   outline, the default) and **Map** (mind map; drag to pan, pinch or scroll to zoom).
 - **Grouped as in the handbook's diagrams:** Gram-positive, Gram-negative and other bacteria, fungi, protozoa,
   parasites, viruses and prions; species of one genus sit under one node.
@@ -22,7 +22,7 @@ antibiogram, hospital protocols, renal function and allergy checks, or clinical 
   Print one organism on a page.
 - **Filters** (persistent box under the toolbar): pathogenicity, community or hospital acquired, type, vector
   (mosquito, tick, mite, flea, louse, sandfly, tsetse fly, blackfly, triatomine bug, deer fly), Gram stain, endemic
-  area and tropical. Search, Saved and Recent lists, optional first-line drug beside each name.
+  area and tropical. Search, Saved and Recent lists, optional first-line drug beside each name, and an optional "Show related (grey)" setting that shows the neighbouring organisms and groups of a search match in grey, for comparing.
 - **Tools:** drug-first view grouped by class, empirical helper, clinical clues, compare up to three.
 - Thai or English interface, light and dark themes, a **Key** button explaining the colours, keyboard access.
 
