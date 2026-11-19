@@ -3,7 +3,7 @@
 
 A bedside and teaching tool by Warodom Phaenthong, M.D. It is one self-contained HTML page
 (`pathogen-map.html`, opened by `index.html`) that runs in the browser, with no installation and no data
-sent anywhere. Version 0.8.15 (beta).
+sent anywhere. Version 0.9.5 (beta).
 
 It is decision support for healthcare professionals. It does not replace the source documents, your local
 antibiogram, hospital protocols, renal function and allergy checks, or clinical judgement.
@@ -16,6 +16,7 @@ antibiogram, hospital protocols, renal function and allergy checks, or clinical 
   outline, the default) and **Map** (mind map; drag to pan, pinch or scroll to zoom).
 - **Grouped as in the handbook's diagrams:** Gram-positive, Gram-negative and other bacteria, fungi, protozoa,
   parasites, viruses and prions; species of one genus sit under one node.
+- **Table view** (Map | Notes | Table): organism, group, first-line, alternative, avoid and source in one scrolling table that follows the search and filters.
 - **Detail box** (right-click or long-press): key points, first-line, alternative and avoid drugs, endemic area,
   vector, screening and diagnostic tests, and **source buttons** (IDAT, CDC Yellow Book, handbook page, or
   "general knowledge"). Only key points and first-line open by default; "Show all details" opens the rest.
@@ -31,14 +32,15 @@ antibiogram, hospital protocols, renal function and allergy checks, or clinical 
 Drug lists follow the Siriraj *Handbook of Infectious Disease* (Faculty of Medicine Siriraj Hospital, Mahidol
 University), with the more recent guidance used as the main source where it differs:
 
+- **Thai guidelines used as the main source where available:** the Thai COVID-19 guideline of 12 Aug 2024, the Thailand H. pylori consensus 2015 and the Thai DDC rabies guide (2019).
 - **IDAT 2026** (Infectious Disease Association of Thailand): Guidance for the Treatment of Multidrug-Resistant
   Gram-Negative Bacterial Infections (AmpC, ESBL, CRE, Acinetobacter, Pseudomonas, Stenotrophomonas) and the
   melioidosis guideline, with the Thai DDC Melioidosis Manual 2021.
-- **CDC Yellow Book 2026** for the endemic areas of 18 organisms.
+- **CDC** clinical pages (Chagas, West Nile, hantavirus, Naegleria, babesiosis) and the **CDC Yellow Book 2026** for the endemic areas of 18 organisms.
 - **Thai NTP 2021** (TB) and the **Thai national HIV guideline**, as already used in the author's TB Regimen
   Guide and HIV guide.
 
-About 30 organisms are not covered by any of these (for example mpox, prions, yellow fever, West Nile virus,
+About 40 organisms are not covered by any of these (for example mpox, prions, yellow fever, West Nile virus,
 *H. pylori*, *T. cruzi*, the endemic fungi) and are labelled as written from general knowledge. The vector,
 hospital-acquired and non-pathogenic lists, most endemic areas and many test descriptions are also general
 knowledge. A review sheet for a clinician to tick off is kept with the author.
