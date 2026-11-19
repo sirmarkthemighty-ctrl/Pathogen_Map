@@ -1,9 +1,9 @@
-# Pathogen Map
-### Interactive encyclopedia of infectious pathogens and their antimicrobials, as a mind map
+# Pathogen Map (beta)
+### Interactive encyclopedia of infectious pathogens and their antimicrobials
 
 A bedside and teaching tool by Warodom Phaenthong, M.D. It is one self-contained HTML page
 (`pathogen-map.html`, opened by `index.html`) that runs in the browser, with no installation and no data
-sent anywhere.
+sent anywhere. Version 0.8.6 (beta).
 
 It is decision support for healthcare professionals. It does not replace the source documents, your local
 antibiogram, hospital protocols, renal function and allergy checks, or clinical judgement.
@@ -12,29 +12,38 @@ antibiogram, hospital protocols, renal function and allergy checks, or clinical 
 
 ## What it does
 
-- **Mind map** from *Infectious pathogens* to Bacteria, Fungi, Protozoa, Parasites, Viruses and a *By infection
-  site* branch of 15 empirical-therapy syndromes. Tap a node to open it; drag to pan, pinch or scroll to zoom.
-- **Bacteria grouped as in the handbook's Gram-stain diagrams** (Gram-positive, Gram-negative, Others), colour-coded
-  violet, red and teal. Gram-positive cocci are split by coagulase and hemolysis.
-- **Drug leaves** under each pathogen: first-line (green), alternative (blue), avoid or intrinsic resistance (red).
-  Tap a drug to see its handbook class, dose, use and adverse effects, and every pathogen that lists it.
-- **Notes view:** the same data as a handwritten-style outline on grid paper, with boxed groups.
-- **Filters and tools:** search, Tropical and Mosquito-borne filters, a Saved list, expand all / collapse all,
-  a count of pathogens shown, links to one pathogen (`#mrsa`), keyboard access, light and dark themes,
-  Thai or English interface (group names and labels). Tap the version badge for the changelog.
+- **230 pathogens** plus 15 infection-site (empirical therapy) entries, in two views: **Notes** (handwritten-style
+  outline, the default) and **Map** (mind map; drag to pan, pinch or scroll to zoom).
+- **Grouped as in the handbook's diagrams:** Gram-positive, Gram-negative and other bacteria, fungi, protozoa,
+  parasites, viruses and prions; species of one genus sit under one node.
+- **Detail box** (right-click or long-press): key points, first-line, alternative and avoid drugs, endemic area,
+  vector, screening and diagnostic tests, and **source buttons** (IDAT, CDC Yellow Book, handbook page, or
+  "general knowledge"). Only key points and first-line open by default; "Show all details" opens the rest.
+  Print one organism on a page.
+- **Filters** (persistent box under the toolbar): pathogenicity, community or hospital acquired, type, vector
+  (mosquito, tick, mite, flea, louse, sandfly, tsetse fly, blackfly, triatomine bug, deer fly), Gram stain, endemic
+  area and tropical. Search, Saved and Recent lists, optional first-line drug beside each name.
+- **Tools:** drug-first view grouped by class, empirical helper, clinical clues, compare up to three.
+- Thai or English interface, light and dark themes, a **Key** button explaining the colours, keyboard access.
 
-## Sources and what is missing
+## Sources and what is not covered
 
-Drug lists were checked against the Siriraj *Handbook of Infectious Disease* (Faculty of Medicine
-Siriraj Hospital, Mahidol University). About 170 pathogens plus 15 infection-site entries; nearly every entry cites the printed handbook page in its panel; lists are
-condensed, not quoted. **Five entries are not covered by the handbook** (AmpC producers, *H. pylori*, *T. cruzi*,
-yellow fever, West Nile virus) and are labelled as written from general knowledge. Every organism named in the handbook's Gram-stain
-diagrams is in the map; those the handbook gives no treatment for (for example *Bacillus*, *Brucella*,
-*Francisella*) show no drugs and say so in their panel.
+Drug lists follow the Siriraj *Handbook of Infectious Disease* (Faculty of Medicine Siriraj Hospital, Mahidol
+University), with the more recent guidance used as the main source where it differs:
 
-The handbook was read from a scan, partly by OCR; the drug dose table and the checked details were confirmed on the
-page images, but verify any dose you rely on. The COVID-19 entry reflects the handbook's edition; check current
-guidance. The Tropical and Mosquito-borne lists are the author's selection, not handbook lists.
+- **IDAT 2026** (Infectious Disease Association of Thailand): Guidance for the Treatment of Multidrug-Resistant
+  Gram-Negative Bacterial Infections (AmpC, ESBL, CRE, Acinetobacter, Pseudomonas, Stenotrophomonas) and the
+  melioidosis guideline, with the Thai DDC Melioidosis Manual 2021.
+- **CDC Yellow Book 2026** for the endemic areas of 18 organisms.
+- **Thai NTP 2021** (TB) and the **Thai national HIV guideline**, as already used in the author's TB Regimen
+  Guide and HIV guide.
+
+About 30 organisms are not covered by any of these (for example mpox, prions, yellow fever, West Nile virus,
+*H. pylori*, *T. cruzi*, the endemic fungi) and are labelled as written from general knowledge. The vector,
+hospital-acquired and non-pathogenic lists, most endemic areas and many test descriptions are also general
+knowledge. A review sheet for a clinician to tick off is kept with the author.
+
+The handbook was read from a scan, partly by OCR; verify any dose you rely on.
 
 ## Editing
 
