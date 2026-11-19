@@ -3,7 +3,7 @@
 
 A bedside and teaching tool by Warodom Phaenthong, M.D. It is one self-contained HTML page
 (`pathogen-map.html`, opened by `index.html`) that runs in the browser, with no installation and no data
-sent anywhere. Version 0.8.10 (beta).
+sent anywhere. Version 0.8.15 (beta).
 
 It is decision support for healthcare professionals. It does not replace the source documents, your local
 antibiogram, hospital protocols, renal function and allergy checks, or clinical judgement.
@@ -20,7 +20,7 @@ antibiogram, hospital protocols, renal function and allergy checks, or clinical 
   vector, screening and diagnostic tests, and **source buttons** (IDAT, CDC Yellow Book, handbook page, or
   "general knowledge"). Only key points and first-line open by default; "Show all details" opens the rest.
   Print one organism on a page.
-- **Filters** (persistent box under the toolbar): pathogenicity, community or hospital acquired, type, vector
+- **Filters** (persistent box under the toolbar; every group folds, with Open all / Close all): pathogenicity, community or hospital acquired, type, vector
   (mosquito, tick, mite, flea, louse, sandfly, tsetse fly, blackfly, triatomine bug, deer fly), Gram stain, endemic
   area and tropical. Search, Saved and Recent lists, optional first-line drug beside each name, and an optional "Show related (grey)" setting that shows the neighbouring organisms and groups of a search match in grey, for comparing. On phones the detail sheet has a drag handle (drag up for a taller sheet) and a Plain font option makes the Notes view easier to read.
 - **Tools:** drug-first view grouped by class, empirical helper, clinical clues, compare up to three.
