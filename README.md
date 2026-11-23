@@ -38,11 +38,12 @@ University), with the more recent guidance used as the main source where it diff
   melioidosis guideline, with the Thai DDC Melioidosis Manual 2021.
 - **CDC and WHO** clinical pages and guidelines, for example anthrax (CDC 2023), tetanus, botulism (CDC 2021, with the Ramathibodi Poison Center antitoxin protocol), plague, tularemia, diphtheria, pertussis, yellow fever, Ebola, Lassa, CCHF, MERS, Nipah, polio, HTLV-1, prion diseases, and several protozoa and worms; the **CDC Yellow Book 2026** for the endemic areas of 18 organisms.
 - **IDSA / ATS guidelines:** blastomycosis (2008), coccidioidomycosis (2016), nontuberculous mycobacteria (2020) and the 2022 consensus on less common NTM.
+- **Mandell, Douglas and Bennett's *Principles and Practice of Infectious Diseases*, 9th ed (2020):** the source for rare yeasts and bacteria (Trichosporon, *Malassezia*, *Streptomyces* and other *Bacillus* species), and a cross-check for about 80 existing entries; where it adds a dose or a different first-line drug, the entry shows both and says which is which. Other references: ESC 2023 endocarditis guideline, IDSA catheter-infection guideline 2009, ATS/IDSA NTM statement 2007, UKHSA, and the MSD Manual for a few rare organisms.
 - **NIH adult and adolescent HIV opportunistic infection guideline:** cryptococcosis, PCP, toxoplasmosis, MAC, CMV, HSV, VZV, syphilis, leishmaniasis, candidiasis, talaromycosis, histoplasmosis, bartonellosis, mpox, microsporidiosis, malaria and TB in HIV.
 - **Thai NTP 2021** (TB) and the **Thai national HIV guideline**, as already used in the author's TB Regimen
   Guide and HIV guide.
 
-About 10 organisms are not covered by any of these (for example EBV, rhinovirus, parvovirus B19, kuru, *M. mucogenicum*, hypervirulent *Klebsiella*) and are labelled as written from general knowledge. About 27 entries are named in the handbook's diagrams only and have no regimen yet (for example *Brucella*, *Pasteurella*, *Actinomyces*, *Serratia*); they show N/A. The vector,
+Every organism now names a source. Three entries (the *Staphylococcus intermedius* group, the non-pathogenic *Neisseria* and other *Moraxella* species) are named in the handbook's diagrams only and have no regimen: they show N/A. Several rare organisms rest on weak evidence (case series, a regional protocol or an extrapolation from a related organism), and each of those entries says so. The vector,
 hospital-acquired and non-pathogenic lists, most endemic areas and many test descriptions are also general
 knowledge. A review sheet for a clinician to tick off is kept with the author.
 
