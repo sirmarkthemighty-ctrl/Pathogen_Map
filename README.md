@@ -3,7 +3,7 @@
 
 A bedside and teaching tool by Warodom Phaenthong, M.D. It is one self-contained HTML page
 (`pathogen-map.html`, opened by `index.html`) that runs in the browser, with no installation and no data
-sent anywhere. Version 0.9.5 (beta).
+sent anywhere. Version 0.9.6 (beta).
 
 It is decision support for healthcare professionals. It does not replace the source documents, your local
 antibiogram, hospital protocols, renal function and allergy checks, or clinical judgement.
@@ -36,12 +36,13 @@ University), with the more recent guidance used as the main source where it diff
 - **IDAT 2026** (Infectious Disease Association of Thailand): Guidance for the Treatment of Multidrug-Resistant
   Gram-Negative Bacterial Infections (AmpC, ESBL, CRE, Acinetobacter, Pseudomonas, Stenotrophomonas) and the
   melioidosis guideline, with the Thai DDC Melioidosis Manual 2021.
-- **CDC** clinical pages (Chagas, West Nile, hantavirus, Naegleria, babesiosis) and the **CDC Yellow Book 2026** for the endemic areas of 18 organisms.
+- **CDC and WHO** clinical pages and guidelines, for example anthrax (CDC 2023), tetanus, botulism (CDC 2021, with the Ramathibodi Poison Center antitoxin protocol), plague, tularemia, diphtheria, pertussis, yellow fever, Ebola, Lassa, CCHF, MERS, Nipah, polio, HTLV-1, prion diseases, and several protozoa and worms; the **CDC Yellow Book 2026** for the endemic areas of 18 organisms.
+- **IDSA / ATS guidelines:** blastomycosis (2008), coccidioidomycosis (2016), nontuberculous mycobacteria (2020) and the 2022 consensus on less common NTM.
+- **NIH adult and adolescent HIV opportunistic infection guideline:** cryptococcosis, PCP, toxoplasmosis, MAC, CMV, HSV, VZV, syphilis, leishmaniasis, candidiasis, talaromycosis, histoplasmosis, bartonellosis, mpox, microsporidiosis, malaria and TB in HIV.
 - **Thai NTP 2021** (TB) and the **Thai national HIV guideline**, as already used in the author's TB Regimen
   Guide and HIV guide.
 
-About 40 organisms are not covered by any of these (for example mpox, prions, yellow fever, West Nile virus,
-*H. pylori*, *T. cruzi*, the endemic fungi) and are labelled as written from general knowledge. The vector,
+About 10 organisms are not covered by any of these (for example EBV, rhinovirus, parvovirus B19, kuru, *M. mucogenicum*, hypervirulent *Klebsiella*) and are labelled as written from general knowledge. About 27 entries are named in the handbook's diagrams only and have no regimen yet (for example *Brucella*, *Pasteurella*, *Actinomyces*, *Serratia*); they show N/A. The vector,
 hospital-acquired and non-pathogenic lists, most endemic areas and many test descriptions are also general
 knowledge. A review sheet for a clinician to tick off is kept with the author.
 
