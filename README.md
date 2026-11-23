@@ -1,9 +1,9 @@
-# Pathogen Map (beta)
+# Pathogen Map
 ### Interactive encyclopedia of infectious pathogens and their antimicrobials
 
 A bedside and teaching tool by Warodom Phaenthong, M.D. It is one self-contained HTML page
 (`pathogen-map.html`, opened by `index.html`) that runs in the browser, with no installation and no data
-sent anywhere. Version 0.9.6 (beta).
+sent anywhere. Version 1.0.0.
 
 It is decision support for healthcare professionals. It does not replace the source documents, your local
 antibiogram, hospital protocols, renal function and allergy checks, or clinical judgement.
