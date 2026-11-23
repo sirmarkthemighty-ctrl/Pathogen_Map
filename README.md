@@ -21,9 +21,9 @@ antibiogram, hospital protocols, renal function and allergy checks, or clinical 
   vector, screening and diagnostic tests, and **source buttons** (IDAT, CDC Yellow Book, handbook page, or
   "general knowledge"). Only key points and first-line open by default; "Show all details" opens the rest.
   Print one organism on a page.
-- **Filters** (persistent box under the toolbar; every group folds, with Open all / Close all): pathogenicity, community or hospital acquired, type, vector
+- **Filters** (persistent box under the toolbar; one row per group, every group folds and shows what is chosen, a bar of removable chips lists the active filters, and every chip shows how many organisms it gives and greys out at zero): pathogenicity, community or hospital acquired, type, vector
   (mosquito, tick, mite, flea, louse, sandfly, tsetse fly, blackfly, triatomine bug, deer fly), Gram stain, endemic
-  area and tropical. Search, Saved and Recent lists, optional first-line drug beside each name, and an optional "Show related (grey)" setting that shows the neighbouring organisms and groups of a search match in grey, for comparing. On phones the detail sheet has a drag handle (drag up for a taller sheet) and a Plain font option makes the Notes view easier to read.
+  area and tropical, and source (Thai guideline, international source, handbook, handbook only, no regimen listed). Search, Saved and Recent lists, first-line drug beside each name and the "Show related (grey)" setting (both on by default) that shows the neighbouring organisms and groups of a search match in grey, for comparing. On phones the detail sheet has a drag handle (drag up for a taller sheet) and a Plain font option makes the Notes view easier to read.
 - **Tools:** drug-first view grouped by class, empirical helper, clinical clues, compare up to three.
 - Thai or English interface, light and dark themes, a **Key** button explaining the colours, keyboard access.
 
