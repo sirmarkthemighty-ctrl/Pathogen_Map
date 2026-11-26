@@ -12,7 +12,7 @@ antibiogram, hospital protocols, renal function and allergy checks, or clinical 
 
 ## What it does
 
-- **259 pathogens** plus 15 infection-site (empirical therapy) entries, in two views: **Notes** (handwritten-style
+- **342 pathogens** plus 15 infection-site (empirical therapy) entries, in two views: **Notes** (handwritten-style
   outline, the default) and **Map** (mind map; drag to pan, pinch or scroll to zoom).
 - **Grouped for learning:** Gram-positive, Gram-negative and other bacteria, fungi, protozoa, parasites, viruses
   and prions, with sub-groups largely following Murray's *Medical Microbiology* (9th ed); species of one genus sit
@@ -44,6 +44,9 @@ University), with the more recent guidance used as the main source where it diff
   human herpesviruses 6–8 (Mandell; NIH HIV guideline) and HPV type groups (Murray). Where the Thai transplant
   guideline and the international consensus differ, the entry shows both. Murray's *Medical Microbiology*, 9th ed,
   is also the reference for the grouping.
+- **83 further organisms named in Murray:** treatment taken from Murray (9th ed) or Mandell (9th ed, 2020) only; Thai
+  guidelines have not been checked for them and they have not been clinically proofread. Entries for which neither
+  book gives a regimen are left empty.
 - **NIH adult and adolescent HIV opportunistic infection guideline:** cryptococcosis, PCP, toxoplasmosis, MAC, CMV, HSV, VZV, syphilis, leishmaniasis, candidiasis, talaromycosis, histoplasmosis, bartonellosis, mpox, microsporidiosis, malaria and TB in HIV.
 - **Thai NTP 2021** (TB) and the **Thai national HIV guideline**, as already used in the author's TB Regimen
   Guide and HIV guide.
